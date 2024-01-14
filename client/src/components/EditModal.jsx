@@ -1,0 +1,431 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import { updateProduct } from "../redux/reducers/productSlice";
+import { InputNumber, List, Modal, } from "antd";
+import { CloseCircleOutlined } from '@ant-design/icons';
+import TextArea from "antd/es/input/TextArea";
+
+
+const EditModal = (props) => {
+  const [editedProduct, setEditedProduct] = useState(props.selectedProduct);
+  const [mainCategoryName, setMainCategoryName] = useState('');
+  const [middleCategories, setMiddleCategories] = useState('');
+  const [middleCategoryName, setMiddleCategoryName] = useState('');
+  const [subCategories, setSubCategories] = useState('');
+  const [open, setOpen] = useState(false);
+  const { qoo10categories } = useSelector((state) => state.product)
+
+  const dispatch = useDispatch();
+  const handleInputChange = (name, value) => {
+
+    setEditedProduct((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = (event) => {
+    const { src } = event.target;
+
+    const updatedImg = editedProduct.img.map((item) => ({ ...item }));
+    const selectedImage = updatedImg.find((item) => item.link === src);
+    const selectedIndex = updatedImg.indexOf(selectedImage);
+
+    if (selectedIndex !== -1) {
+      updatedImg.splice(selectedIndex, 1);
+      updatedImg.unshift(selectedImage);
+    }
+
+    setEditedProduct((prevState) => ({
+      ...prevState,
+      img: updatedImg,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    dispatch(updateProduct(editedProduct));
+    props.onClick();
+  };
+  let mainCategories = [];
+  let middleC = [];
+  let subC = [];
+
+  qoo10categories.map((category, index) => {
+    if (qoo10categories[index]?.mainCategoryName !== qoo10categories[index + 1]?.mainCategoryName)
+      mainCategories.push(category);
+  })
+  useEffect(() => {
+    middleC = qoo10categories.filter((category, index) => {
+      if (qoo10categories[index]?.middleCategoryName !== qoo10categories[index + 1]?.middleCategoryName)
+        return category.mainCategoryName === mainCategoryName
+    })
+    setMiddleCategories(middleC);
+    setSubCategories([]);
+  }, [mainCategoryName]);
+  useEffect(() => {
+    subC = qoo10categories.filter((category, index) => {
+      return category.middleCategoryName === middleCategoryName
+    })
+    setSubCategories(subC);
+  }, [middleCategoryName])
+  return (
+    <div className="w-[1080px] h-[98vh] pb-10 bg-white">
+      <div className=" justify-between pt-3 items-center px-7">
+        <div className="flex justify-end pt-3 pr-5">
+          <a onClick={props.onClick}>
+            <CloseCircleOutlined className="text-[30px] cursor-pointer" />
+          </a>
+        </div>
+        <h2 className="text-center  pb-[3px] w-full text-[26px] font-bold">
+          商 品 情 報 編 集
+        </h2>
+      </div>
+
+      <form className="w-full px-[30px] pt-0 shadow-none " onSubmit={handleSubmit}>
+        <div className=" justify-between">
+          <div className="card w-full">
+            <div className="flex gap-5">
+
+              <div className="">
+                <label
+                  htmlFor="出品"
+                  className="block font-semibold text-gray-900 dark:text-white text-[16px] mb-[10px]"
+                >
+                  画像選択
+                </label>
+                <div className=" mb-4 mt-2">
+                  <div className="main-img mb-3 m-auto flex justify-center">
+                    <img className=" shadow-sm rounded-2xl w-[100px] h-[100px]" onClick={() => { setOpen(true) }} src={editedProduct?.img[0].link}></img>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full">
+                <div className=" my-1 w-full">
+                  <label
+                    htmlFor="title"
+                    className="block mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                  >
+                    タイトル:
+                  </label>
+                  <TextArea
+                    showCount
+                    className=" text-black"
+                    placeholder="disable resize"
+                    style={{ height: 36, resize: 'none' }}
+                    value={editedProduct?.title}
+                    onChange={(e) => { handleInputChange('title', e.target.value) }}
+
+                  />
+                </div>
+                <div className="flex gap-5">
+                  <div className=" my-1 w-[300px]">
+                    <label
+                      htmlFor="title"
+                      className="block mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      商 品 規 格
+                    </label>
+                    <div className="card-2 p-1 flex gap-2 w-[300px]">
+                      <div>
+                        <div>
+                          <label>
+                            幅:
+                          </label>
+                          <span className="ml-1">
+                            {editedProduct?.package.width.value.toPrecision(3)} inches
+                          </span>
+                        </div>
+                        <div>
+                          <label>
+                            高さ:
+                          </label>
+                          <span className="ml-1">
+                            {editedProduct?.package.height.value.toPrecision(3)} inches
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <div>
+                          <label>
+                            長さ:
+                          </label>
+                          <span className="ml-1">
+                            {editedProduct?.package.length.value.toPrecision(3)} inches
+                          </span>
+                        </div>
+                        <div>
+                          <label>
+                            重量:
+                          </label>
+                          <span className="ml-1">
+                            {editedProduct?.package.weight.value.toPrecision(3)} pounds
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className=" my-1 w-[100px]">
+                    <label
+                      htmlFor="title"
+                      className="block mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      購 入 価 格:
+                    </label>
+                    <div className="card-2 p-1 flex gap-2 w-[100px]">
+                      <span>{editedProduct?.price} ¥</span>
+                    </div>
+                  </div>
+                  <div className=" my-1 w-[120px]">
+                    <label
+                      htmlFor="title"
+                      className="block mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      既定商品数量:
+                    </label>
+                    <div className="card-2 p-1 flex gap-2 w-[120px]">
+                      <span>{(editedProduct?.quantity === 0 || null) && "未決定"}</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div className="my-2">
+              <label
+                htmlFor="description"
+                className="block mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+              >
+                商 品 説 明:
+              </label>
+              <TextArea
+                showCount
+                className=" text-black"
+                placeholder="disable resize"
+                style={{ height: 100, resize: 'none' }}
+                value={editedProduct?.description}
+                onChange={(e) => { handleInputChange('description', e.target.value) }}
+
+              />
+
+            </div>
+          </div>
+          <div className="flex gap-4 w-full my-3">
+            <div className="w-full text-center flex flex-col justify-between">
+              <div className="card text-left">
+                <label
+                  htmlFor="asin"
+                  className="ml-3 text-[16px] font-semibold text-gray-700 border-b-2 border-dark-grayish-blue pb-2"
+                >
+                  カテゴリー
+                </label>
+                <div className=" text-center mt-5  flex gap-1">
+                  <div className="w-full">
+                    <span>大分類</span>
+                    <List
+                      className="h-[317px] w-full mt-1 overflow-scroll overflow-x-hidden"
+                      bordered
+                      dataSource={mainCategories}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <a onClick={() => { setMainCategoryName(item.mainCategoryName) }}>{item.mainCategoryName}</a>
+                        </List.Item>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full">
+                    <span>中分類カテゴリー</span>
+                    <List
+                      className="h-[317px] w-full mt-1 overflow-scroll overflow-x-hidden"
+                      bordered
+                      dataSource={middleCategories}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <a onClick={() => { setMiddleCategoryName(item.middleCategoryName) }}>{item.middleCategoryName}</a>
+                        </List.Item>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full">
+                    <span>小分類カテゴリー</span>
+                    <List
+                      className="h-[317px] w-full mt-1 overflow-scroll overflow-x-hidden"
+                      bordered
+                      dataSource={subCategories}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <a onClick={() => { handleInputChange('SecondSubCat', item.subCategory) }}>{item.subCategoryName}</a>
+                        </List.Item>
+                      )}
+                    />
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+            <div className="text-left w-[420px] card  flex flex-col justify-between">
+              <label
+                htmlFor="asin"
+                className="ml-3 w-[73%]  text-[16px] font-semibold text-gray-700 border-b-2 border-dark-grayish-blue pb-2"
+              >
+                出品価格と製品数量設定
+              </label>
+              <div className="text-center">
+
+                <div className="card-2 w-full">
+                  <label
+                    htmlFor="asin"
+                    className="text-[16px] font-semibold text-gray-700 border-b border-dark-grayish-blue pb-2"
+                  >
+                    数 量 設 定
+                  </label>
+                  <div className="my-2">
+                    <InputNumber
+                      addonBefore="数 量"
+                      className="w-full"
+                      step={1}
+                      value={editedProduct.qoo10_quantity}
+                      onChange={(e) => {
+                        handleInputChange('qoo10_quantity', e)
+                        setEditedProduct((prevState) => ({
+                          ...prevState,
+                          qoo10_price: editedProduct?.price + editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100,
+                          predictableIncome: (editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100 - editedProduct?.transport_fee) * editedProduct?.qoo10_quantity,
+                        }));
+                      }
+                      }
+
+                      min={0}
+                      addonAfter="個" ></InputNumber>
+
+                  </div>
+                  <label
+                    htmlFor="asin"
+                    className="text-[16px] font-semibold text-gray-700 border-b border-dark-grayish-blue pb-2"
+                  >
+                    販 売 価 格 設 定
+                  </label>
+                  <div className="mt-2">
+                    <InputNumber
+                      addonBefore="販売価格"
+                      className="w-full"
+                      step={1}
+                      value={editedProduct?.qoo10_price}
+                      min={0}
+                      addonAfter="¥" ></InputNumber>
+                    <InputNumber
+                      addonBefore='追加の昇算価格'
+                      className="w-full"
+                      onChange={(e) => {
+                        handleInputChange('odds_amount', e)
+                        setEditedProduct((prevState) => ({
+                          ...prevState,
+                          qoo10_price: editedProduct?.price + editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100,
+                          predictableIncome: (editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100 - editedProduct?.transport_fee) * editedProduct?.qoo10_quantity,
+
+                        }));
+                      }
+
+                      }
+                      value={editedProduct?.odds_amount}
+                      step={1}
+                      min={0}
+                      addonAfter="¥"></InputNumber>
+                    <InputNumber
+                      addonBefore='利益率'
+                      className="w-full"
+                      onChange={(e) => {
+                        handleInputChange('bene_rate', e)
+                        setEditedProduct((prevState) => ({
+                          ...prevState,
+                          qoo10_price: editedProduct?.price + editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100,
+                          predictableIncome: (editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100 - editedProduct?.transport_fee) * editedProduct?.qoo10_quantity,
+                        }));
+
+                      }}
+                      value={editedProduct?.bene_rate}
+                      addonAfter="%"
+                      step={1} max={100} min={0}></InputNumber>
+                  </div>
+                  <div className=" w-full">
+                    <label
+                      htmlFor="asin"
+                      className="text-[16px] font-semibold text-gray-700 border-b border-dark-grayish-blue pb-2"
+                    >
+                      送 料 設 定
+                    </label>
+                    <div className="my-2">
+                      <InputNumber
+                        className="w-full"
+                        id="transport_fee"
+                        name="transport_fee"
+                        value={editedProduct?.transport_fee}
+                        onChange={(e) => {
+                          setEditedProduct((prevState) => ({
+                            ...prevState,
+                            predictableIncome: (editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100 - editedProduct?.transport_fee) * editedProduct?.qoo10_quantity,
+
+                          }));
+                          handleInputChange('transport_fee', e)
+                        }}
+                        addonBefore='送 料'
+                        step={1}
+                        min={0}
+                        addonAfter="¥"></InputNumber>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-2 flex">
+                  <label className="w-[60%]">
+                    利 益:
+                  </label>
+                  <label>
+                    {(editedProduct?.odds_amount + editedProduct?.price * editedProduct?.bene_rate / 100 - editedProduct?.transport_fee) * editedProduct?.qoo10_quantity} ¥
+                  </label>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+          <button
+            className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
+          > 保存
+          </button>
+        </div>
+
+      </form>
+      <Modal
+        open={open}
+        onOk={true}
+        onCancel={() => { setOpen(false) }}
+        footer={false}
+        width={480}
+      >
+        <div className="img-box w-full flex flex-wrap justify-start items-center">
+          {editedProduct &&
+            editedProduct.img.map((item, index) => (
+              <div
+                key={index}
+                className="w-[60px] h-[60px] m-1 drop-shadow-xl hover:border"
+                onClick={handleImageChange}
+              >
+                <img
+                  src={item.link}
+                  alt=""
+                  name="link"
+                  className="w-full h-full drop-shadow-xl"
+                />
+              </div>
+            ))}
+        </div>
+      </Modal>
+
+    </div>
+  );
+};
+
+export default EditModal;
