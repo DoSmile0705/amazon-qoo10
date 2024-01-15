@@ -34,7 +34,7 @@ const ProductSchema = new mongoose.Schema(
     bene_rate: { type: Number, default: 0 },
     odds_amount: { type: Number, default: 0 },
     qoo10_quantity: { type: Number, default: 0 },
-    status: { type: String, default: '新規追加' },
+    status: { type: String, default: "新規追加" },
   },
   { timestamps: true }
 );

@@ -33,6 +33,7 @@
     "react-hook-form": "^7.33.1",
     "redux-persist": "^6.0.0",
     "stripe": "^10.0.0",
+    "url-encode-decode": "^1.0.0",
     "xlsx": "^0.18.5"
   }
 }

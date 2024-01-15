@@ -3,25 +3,25 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { exhibitProducts } from "../redux/reducers/productSlice";
 import { getAllNgDatas } from "../redux/reducers/ngSlice";
-import { CloseCircleOutlined } from '@ant-design/icons';
-
+import { CloseCircleOutlined } from "@ant-design/icons";
 
 const ExhibitionSettingModal = (props) => {
-
   const [passedProducts, setPassedProduct] = useState();
   const [exceptedProducts, setExceptedProduct] = useState();
 
   const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
   const productData = useSelector((state) => state.product.products); // Accessing state.products using useSelector
   let ngDataObject = useSelector((state) => state.ng.ngdatas);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-
   };
 
   const exhibit_Products = async (event) => {
-    dispatch(exhibitProducts(passedProducts));
+    dispatch(
+      exhibitProducts({ passedProducts: passedProducts, userId: userInfo._id })
+    );
     props.onClick();
   };
   const ngCheck = () => {
@@ -30,14 +30,12 @@ const ExhibitionSettingModal = (props) => {
 
     productData.map((product, index) => {
       let title = product.title.toLowerCase();
-      let Cbullet_point = '';
+      let Cbullet_point = "";
       product.bullet_point.map((bull) => {
-        Cbullet_point += '-' + bull.value.toLowerCase();
-      })
+        Cbullet_point += "-" + bull.value.toLowerCase();
+      });
       let total = title + Cbullet_point;
       let asin = product.asin.toLowerCase();
-
-
 
       if (props.checkedItems[index]) {
         // -ngword check
@@ -48,7 +46,7 @@ const ExhibitionSettingModal = (props) => {
               isexcept = true;
             }
           }
-        })
+        });
         // -ngcategory check
         if (!isexcept) {
           ngDataObject[0]?.ngcategory.map((category, index) => {
@@ -58,7 +56,7 @@ const ExhibitionSettingModal = (props) => {
                 isexcept = true;
               }
             }
-          })
+          });
         }
         // -ngAsin check
         if (!isexcept) {
@@ -69,7 +67,7 @@ const ExhibitionSettingModal = (props) => {
                 isexcept = true;
               }
             }
-          })
+          });
         }
         // -ngBrand check
         if (!isexcept) {
@@ -80,31 +78,35 @@ const ExhibitionSettingModal = (props) => {
                 isexcept = true;
               }
             }
-          })
+          });
         }
         // input products
         if (!isexcept) {
-          let editedTitle = '';
-          let description = '';
+          let editedTitle = "";
+          let description = "";
           ngDataObject[0]?.excludeword.map((word) => {
             if (word.flag) {
-              editedTitle = product.title.replace(word.value, '____');
-              description = Cbullet_point.replace(word.value, '____');
+              editedTitle = product.title.replace(word.value, "____");
+              description = Cbullet_point.replace(word.value, "____");
             }
-          })
-          checkProducts.push({ ...product, title: editedTitle, description: description, status: '出品済み' });
+          });
+          checkProducts.push({
+            ...product,
+            title: editedTitle || product.title,
+            description: description || product.description,
+            status: "出品済み",
+          });
         } else if (isexcept) {
           excepted_Products.push(product);
         }
       }
-
-    })
-    setPassedProduct(checkProducts)
-    setExceptedProduct(excepted_Products)
-  }
+    });
+    setPassedProduct(checkProducts);
+    setExceptedProduct(excepted_Products);
+  };
   useEffect(() => {
-    dispatch(getAllNgDatas());
-  }, [])
+    dispatch(getAllNgDatas(userInfo._id));
+  }, []);
   return (
     <div className="w-[80%] h-[95vh]  py-3 bg-white">
       <div className="flex justify-end pt-3 pr-5">
@@ -127,48 +129,59 @@ const ExhibitionSettingModal = (props) => {
                       <img src={product.img[0].link}></img>
                       <label>{product.title}</label>
                     </div>
-                  )
+                  );
                 }
-              }) || '内容なし'}
+              }) || "内容なし"}
             </div>
           </div>
           <div className="products-temple">
             <label className="check-kind">合格製品</label>
             <div className="products-list flex gap-x-5 mt-3 justify-start w-full">
-
-              {passedProducts?.length ? passedProducts?.map((product, index) => {
-                return (
-                  <div key={index} className="product-item">
-                    <img src={product.img[0].link}></img>
-                    <label >{product.title}</label>
-                  </div>
-                )
-              }) : '内容なし'}
+              {passedProducts?.length
+                ? passedProducts?.map((product, index) => {
+                    return (
+                      <div key={index} className="product-item">
+                        <img src={product.img[0].link}></img>
+                        <label>{product.title}</label>
+                      </div>
+                    );
+                  })
+                : "内容なし"}
             </div>
           </div>
           <div className="products-temple">
             <label className="check-kind">除外された商品</label>
             <div className="products-list flex gap-x-5 mt-3 justify-start">
-              {exceptedProducts?.length ? exceptedProducts?.map((product, index) => {
-                return (
-                  <div key={index} className="product-item">
-                    <img src={product.img[0].link}></img>
-                    <label>{product.title}</label>
-                  </div>
-                )
-              }) : '内容なし'}
+              {exceptedProducts?.length
+                ? exceptedProducts?.map((product, index) => {
+                    return (
+                      <div key={index} className="product-item">
+                        <img src={product.img[0].link}></img>
+                        <label>{product.title}</label>
+                      </div>
+                    );
+                  })
+                : "内容なし"}
             </div>
           </div>
           <div className="product_btns mx-5 flex gap-5">
             <button
-              onClick={() => { ngCheck() }}
+              onClick={() => {
+                ngCheck();
+              }}
               className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
-            > ng検査
+            >
+              {" "}
+              ng検査
             </button>
             <button
-             onClick={() => { exhibit_Products() }}
+              onClick={() => {
+                exhibit_Products();
+              }}
               className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
-            > 出 品
+            >
+              {" "}
+              出 品
             </button>
           </div>
         </div>

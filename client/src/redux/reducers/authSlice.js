@@ -11,7 +11,7 @@ export const registerUser = createAsyncThunk(
         },
       };
       await axios.post(
-        `${BASE_URL}/api/auth/register`,
+        `/api/auth/register`,
         { email, password, username },
         config
       );
@@ -29,14 +29,10 @@ export const loginUser = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      let res = await axios.post(
-        `${BASE_URL}/api/auth`,
-        { email, password },
-        config
-      );
+      let res = await axios.post(`/api/auth`, { email, password }, config);
       let data = res.data;
       localStorage.setItem("userToken", data?.token);
-      localStorage.setItem("userId", data?.user?._id)
+      localStorage.setItem("userId", data?.user?._id);
       return data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -55,7 +51,7 @@ export const getUserDetails = createAsyncThunk(
           "x-auth-token": auth.userToken,
         },
       };
-      const { data } = await axios.get(`${BASE_URL}/api/auth`, config);
+      const { data } = await axios.get(`/api/auth`, config);
       return data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -76,7 +72,7 @@ export const updateUser = createAsyncThunk(
       };
 
       let res = await axios.put(
-        `${BASE_URL}/api/auth/${auth.userInfo._id}`,
+        `/api/auth/${auth.userInfo._id}`,
         userData,
         config
       );
@@ -156,7 +152,6 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = true;
       state.errMsg = payload.msg;
-
     },
 
     [getUserDetails.pending]: (state) => {

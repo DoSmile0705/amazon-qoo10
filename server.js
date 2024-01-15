@@ -10,7 +10,15 @@ connectDB();
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://os3-389-27638.vs.sakura.ne.jp",
+      "https://os3-389-27638.vs.sakura.ne.jp/:5173",
+      "http://os3-389-27638.vs.sakura.ne.jp/:5173",
+      "https://localhost:5173",
+      "http://localhost:5173",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
@@ -25,7 +33,6 @@ app.use("/api/create-subscription", require("./routes/stripe"));
 app.use("/api/products", require("./routes/getAmazonProduct"));
 app.use("/api/ngdata", require("./routes/ngData"));
 app.use("/api/qoo10", require("./routes/qoo10"));
-
 
 if (process.env.NODE_ENV === "production") {
   // Serve static files from the React app

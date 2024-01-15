@@ -17,7 +17,7 @@ const verifyToken = (req, res, next) => {
     req.user = decoded.user;
     next();
   } catch (error) {
-    res.status(403).send("Token is not valid");
+    res.status(403).send("");
   }
 };
 const verifyTokenAndAuthorization = (req, res, next) => {
