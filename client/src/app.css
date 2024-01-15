@@ -2,10 +2,8 @@
   transition: ease-in;
   transition-delay: 0.2;
   transition-duration: 0.2;
-  font-family: 'Noto Sans JP', sans-serif !important;
   border-color: none;
   /* background-image:url('../'); */
-  color: #6b431d;
 }
 a {
   color: rgb(39, 39, 66) !important;
@@ -16,7 +14,7 @@ a {
 }
 
 .user-bar button {
-  box-shadow: 2px 1px 7px gray;
+  box-shadow: 2px 1px 7px rgb(165, 185, 238);
 }
 
 .scroll::-webkit-scrollbar {
@@ -42,22 +40,18 @@ a {
   border-radius: 5px;
 }
 
-
 Button {
-  background-color: #ff9a47 !important;
+  background-color: #1565c0 !important;
   color: rgb(255, 255, 255) !important;
-  border: #ecaa7e !important;
-  box-shadow: 1px 1px 2px #e2e0df !important;
 }
 Button:hover {
-  background-color: #eba96bef !important;
-
+  background-color: #4b81bf !important;
 }
 
 /* =============common======== */
 
 .background {
-  background-image: url('../src/assets/images/bac\ \(1\).webp');
+  background-image: url("../src/assets/images/bac\ \(1\).webp");
   background-repeat: no-repeat;
   background-size: cover;
 }
@@ -96,7 +90,6 @@ Button:hover {
 
 .blue-btn {
   background-color: rgb(65, 109, 230);
-
 }
 
 .exhi_words {
@@ -144,12 +137,11 @@ Button:hover {
 }
 
 .disabled_ng {
-  color: gray
+  color: gray;
 }
 
 .products-list {
   text-align: center;
-
 }
 
 .img-box {
@@ -175,7 +167,6 @@ Button:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
 }
 
 .exhi_word_item {
@@ -214,11 +205,11 @@ Button:hover {
   border-color: rgb(195, 195, 201);
 }
 .ant-pagination-item {
-  border-color: #ecaa7e !important;
+  border-color: #7e89ec !important;
 }
 .logo {
-  color: #6b431d;
+  color: black;
 }
-dl div{
+dl div {
   border-color: rgb(209, 206, 206) !important;
 }

@@ -15,14 +15,20 @@ const createCustomer = async (req, res) => {
       items: [{ price: process.env.PRICE_KEY }],
       expand: ["latest_invoice.payment_intent"],
     });
-
+    console.log(
+      "customer is here",
+      customer,
+      "subscription is here",
+      subscription
+    );
     await Payment.findByIdAndUpdate(
       { _id: req.body.userId },
       {
         user_id: subscription.customer,
         subscriptionid: subscription.id,
         paymentStatus: true,
-      })
+      }
+    );
 
     res.json({
       subscription,

@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import EditModal from "../components/EditModal";
 import ExhibitionSettingModal from "../components/ExhibitionSettingModal";
-import { addProduct, getAllProducts, getQoo10Category } from "../redux/reducers/productSlice";
-import { Spin, Table, Button, Pagination, Input, message } from 'antd';
-
+import {
+  addProduct,
+  getAllProducts,
+  getQoo10Category,
+} from "../redux/reducers/productSlice";
+import { Spin, Table, Button, Pagination, Input, message } from "antd";
 
 const Product = () => {
   const dispatch = useDispatch();
@@ -12,12 +15,14 @@ const Product = () => {
   const [newItems, setNewItems] = useState([]);
 
   const [isnew, setIsnew] = useState(false);
-  const [asin, setAsin] = useState('');
+  const [asin, setAsin] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [messageApi, contextHolder] = message.useMessage();
   const [showModal, setShowModal] = useState(false);
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const { products, loading, successMsg, uploading } = useSelector((state) => state.product); // Accessing state.products using useSelector
+  const { products, loading, successMsg, uploading } = useSelector(
+    (state) => state.product
+  ); // Accessing state.products using useSelector
   const [table_products, SetTable_products] = useState(products || []);
   const [error_Msg, SetError_Msg] = useState(null);
 
@@ -26,17 +31,16 @@ const Product = () => {
   const onShowSizeChange = (current, pageSize) => {
     setPageSize(pageSize);
     setCurrentPage(currentPage);
-
   };
   const success = () => {
     messageApi.open({
-      type: 'success',
+      type: "success",
       content: successMsg,
     });
   };
   const warning = () => {
     messageApi.open({
-      type: 'warning',
+      type: "warning",
       content: error_Msg,
     });
     SetError_Msg(null);
@@ -44,8 +48,7 @@ const Product = () => {
 
   useEffect(() => {
     dispatch(getQoo10Category());
-    dispatch(getAllProducts(localStorage.getItem('userId')));
-
+    dispatch(getAllProducts(localStorage.getItem("userId")));
   }, [uploading]);
   useEffect(() => {
     if (successMsg) {
@@ -55,24 +58,24 @@ const Product = () => {
     }
   }, [successMsg, error_Msg]);
   useEffect(() => {
-    SetTable_products(products.slice(currentPage * pageSize, pageSize))
-
+    SetTable_products(products.slice(currentPage * pageSize, pageSize));
   }, [loading, pageSize, currentPage]);
-  
- 
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      dispatch(getAllProducts(localStorage.getItem('userId')));
+      dispatch(getAllProducts(localStorage.getItem("userId")));
     }, 5000); // Delay of 2000 milliseconds (2 seconds)
     return () => {
       clearTimeout(timeoutId);
     };
-  })
+  });
   const handleSubmit = async (event) => {
     event.preventDefault();
     const asin = event.target.elements.asin.value;
-    setAsin('');
-    dispatch(addProduct({ asin: asin, userId: localStorage.getItem('userId') }));
+    setAsin("");
+    dispatch(
+      addProduct({ asin: asin, userId: localStorage.getItem("userId") })
+    );
   };
 
   const handleRowClick = (index, product) => {
@@ -80,12 +83,15 @@ const Product = () => {
       ...prevState,
       [index]: !prevState[index],
     }));
-    if (product.qoo10_price === null || product.bene_rate === null || product.odds_amount === null || product.transport_fee === null) {
-
-      SetError_Msg('出品価格、利潤、追加金、郵送費項目の一部が入力されない');
-    } else if (product.status !== '新規追加') {
-      SetError_Msg('出品された商品です');
-
+    if (
+      product.qoo10_price === 0 ||
+      product.bene_rate === 0 ||
+      product.odds_amount === 0 ||
+      product.transport_fee === 0
+    ) {
+      SetError_Msg("出品価格、利潤、追加金、郵送費項目の一部が入力されない");
+    } else if (product.status !== "新規追加") {
+      SetError_Msg("出品された商品です");
     } else {
       setIsnew(true);
       setNewItems((prevState) => ({
@@ -93,7 +99,6 @@ const Product = () => {
         [index]: !prevState[index],
       }));
     }
-
   };
 
   const handleAllSelectChange = (event) => {
@@ -104,7 +109,7 @@ const Product = () => {
     if (isChecked) {
       products.forEach((data, index) => {
         updatedCheckedItems[index] = true;
-        if (data.status === '新規追加') {
+        if (data.status === "新規追加") {
           updatedNewItmes[index] = true;
         }
       });
@@ -125,17 +130,15 @@ const Product = () => {
   const exhibitionSettingClick = () => {
     if (newItems.length || isnew) {
       setShowExhibitionModal(true);
-      
     }
   };
 
   return (
-
     <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10 ">
       {contextHolder}
       <div className="items-center w-full h-full">
         <div className="card h-full w-full flex flex-col justify-between">
-          <Spin  spinning={loading} className="h-full">
+          <Spin spinning={loading} className="h-full">
             <table className=" h-full w-full border border-gray-400 rounded-md  text-center text-sm font-light  table-auto mt-20">
               <thead className="border-b font-medium border-gray-400 bg-light-grayish-blue">
                 <tr className="h-[50px]">
@@ -176,60 +179,60 @@ const Product = () => {
                 </tr>
               </thead>
               <tbody>
-                {
-                  table_products.map((product, index) => (
-                    <tr
-                      key={index}
-                      className="cursor-pointer h-[50px] border-b border-gray-400 hover:bg-grayish-blue"
-                      onClick={() => handleRowClick(index, product)}
-                    >
-                      <td className=" border-r font-medium border-gray-400">
-                        <Input
-                          type="checkbox"
-                          id={index}
-                          name="checkbox"
-                          value={index}
-                          checked={checkedItems[index] || false}
-                          onChange={() => handleRowClick(index)}
-                        />
-                      </td>
-                      <td className="border-r font-medium border-gray-400">
-                        {index + 1}
-                      </td>
-                      <td className="border-r border-gray-400">
-                        <img
-                          src={product?.img[0].link}
-                          alt={index}
-                          className="m-auto w-[50px]"
-                        />
-                      </td>
-                      <td className="border-r border-gray-400 break-words">
-                        <div className="text-container w-[100%]">{product.title}</div>
-                      </td>
+                {table_products.map((product, index) => (
+                  <tr
+                    key={index}
+                    className="cursor-pointer h-[50px] border-b border-gray-400 hover:bg-grayish-blue"
+                    onClick={() => handleRowClick(index, product)}
+                  >
+                    <td className=" border-r font-medium border-gray-400">
+                      <Input
+                        type="checkbox"
+                        id={index}
+                        name="checkbox"
+                        value={index}
+                        checked={checkedItems[index] || false}
+                        onChange={() => handleRowClick(index)}
+                      />
+                    </td>
+                    <td className="border-r font-medium border-gray-400">
+                      {index + 1}
+                    </td>
+                    <td className="border-r border-gray-400">
+                      <img
+                        src={product?.img[0].link}
+                        alt={index}
+                        className="m-auto w-[50px]"
+                      />
+                    </td>
+                    <td className="border-r border-gray-400 break-words">
+                      <div className="text-container w-[100%]">
+                        {product.title}
+                      </div>
+                    </td>
 
-                      <td className="border-r border-gray-400">
-                        {product.price}
-                      </td>
-                      <td className="border-r border-gray-400">
-                        {product.qoo10_price || '未決定'}
-                      </td>
-                      <td className="border-r border-gray-400">
-                        {product.predictableIncome || '未決定'}
-                      </td>
-                      <td className="border-r border-gray-400">
-                        {product.status}
-                      </td>
-                      <td className="border-r border-gray-400">
-                        <Button
-                          onClick={() => handleEditClick(index)}
-                          className="primary"
-                        >
-                          編 集
-                        </Button>
-                      </td>
-
-                    </tr>
-                  ))}
+                    <td className="border-r border-gray-400">
+                      {product.price}
+                    </td>
+                    <td className="border-r border-gray-400">
+                      {product.qoo10_price || "未決定"}
+                    </td>
+                    <td className="border-r border-gray-400">
+                      {product.predictableIncome || "未決定"}
+                    </td>
+                    <td className="border-r border-gray-400">
+                      {product.status}
+                    </td>
+                    <td className="border-r border-gray-400">
+                      <Button
+                        onClick={() => handleEditClick(index)}
+                        className="primary"
+                      >
+                        編 集
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </Spin>
@@ -263,7 +266,9 @@ const Product = () => {
                   id="asin"
                   type="text"
                   value={asin}
-                  onChange={(e) => { setAsin(e.target.value) }}
+                  onChange={(e) => {
+                    setAsin(e.target.value);
+                  }}
                   placeholder="ASINコード入力"
                 />
                 <button
@@ -311,7 +316,6 @@ const Product = () => {
         </div>
       )}
     </section>
-
   );
 };
 
