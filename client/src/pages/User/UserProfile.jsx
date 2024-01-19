@@ -46,7 +46,7 @@ const UserProfile = () => {
 
   return (
     <div className="wrapper w-full h-full py-12 sm:py-8 flex items-center justify-center">
-      <div className="flex gap-2 drop-shadow-md lg:bg-white rounded-md p-5">
+      <div className="flex gap-2 drop-shadow-md bg-white rounded-md p-5">
         <div className=" text-center rounded-lg w-[200px] h-auto py-4 ">
           <Avatar size={64} icon={<UserOutlined />} />
           <h3 className="capitalize text-lg text-center my-6">
@@ -68,7 +68,7 @@ const UserProfile = () => {
             <div className="p-2">
               <Button
                 onClick={() => onLogOut()}
-                className="w-full mt-32 h-10 flex items-center gap-4  justify-center text-center "
+                className="primary w-full mt-32 h-10 flex items-center gap-4  justify-center text-center "
               >
                 <LogoutOutlined />
                 <span>ログアウト</span>

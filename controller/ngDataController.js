@@ -7,66 +7,47 @@ app.use(bodyParser.json());
 
 const addNgData = async (req, res) => {
   const reqData = req.body;
-  console.log(reqData);
+  console.log("just here", reqData);
 
-  try {
-    let ngdata = await NgData.find({ _id: reqData.userId });
-    const is_exist_ngword = await NgData.find({
-      _id: reqData.userId,
-      "ngword.value": reqData.ngword?.value,
-    });
-    const is_exist_ngbrand = await NgData.find({
-      _id: reqData.userId,
-      "ngbrand.value": reqData.ngbrand?.value,
-    });
-    const is_exist_ngcategory = await NgData.find({
-      _id: reqData.userId,
-      "ngcategory.value": reqData.ngcategory?.value,
-    });
-    const is_exist_ngasin = await NgData.find({
-      _id: reqData.userId,
-      "ngasin.value": reqData.ngasin?.value,
-    });
-    const is_exist_excludeword = await NgData.find({
-      _id: reqData.userId,
-      "excludeword.value": reqData.excludeword?.value,
-    });
-    if (!ngdata.length) {
-      console.log("sssssssssssssssssssss");
-      ngdata = new NgData({
-        _id: reqData.userId,
-        ngword: reqData.ngword,
-        excludeword: reqData.excludeword,
-        ngcategory: reqData.ngcategory,
-        ngasin: reqData.ngasin,
-        ngbrand: reqData.ngbrand,
-      });
-      await ngdata.save();
-      res.json(ngdata);
-    } else {
-      NgData.updateOne(
-        { _id: reqData.userId },
-        {
-          $push: {
-            ngword: !is_exist_ngword.length ? reqData.ngword : undefined,
-            ngbrand: !is_exist_ngbrand.length ? reqData.ngbrand : undefined,
-            ngcategory: !is_exist_ngcategory.length
-              ? reqData.ngcategory
-              : undefined,
-            ngasin: !is_exist_ngasin.length ? reqData.ngasin : undefined,
-            excludeword: !is_exist_excludeword.length
-              ? reqData.excludeword
-              : undefined,
-          },
-        }
-      )
-        .then((ngdata) => res.status(200).json({ result: ngdata }))
-        .catch((err) => res.status(404).json({ nopostfound: "No Data found" }));
+  const is_exist_ngword = await NgData.find({
+    _id: reqData.userId,
+    "ngword.value": reqData.ngword?.value,
+  });
+  const is_exist_ngbrand = await NgData.find({
+    _id: reqData.userId,
+    "ngbrand.value": reqData.ngbrand?.value,
+  });
+  const is_exist_ngcategory = await NgData.find({
+    _id: reqData.userId,
+    "ngcategory.value": reqData.ngcategory?.value,
+  });
+  const is_exist_ngasin = await NgData.find({
+    _id: reqData.userId,
+    "ngasin.value": reqData.ngasin?.value,
+  });
+  const is_exist_excludeword = await NgData.find({
+    _id: reqData.userId,
+    "excludeword.value": reqData.excludeword?.value,
+  });
+
+  await NgData.updateOne(
+    { _id: reqData.userId },
+    {
+      $push: {
+        ngword: !is_exist_ngword.length ? reqData.ngword : undefined,
+        ngbrand: !is_exist_ngbrand.length ? reqData.ngbrand : undefined,
+        ngcategory: !is_exist_ngcategory.length
+          ? reqData.ngcategory
+          : undefined,
+        ngasin: !is_exist_ngasin.length ? reqData.ngasin : undefined,
+        excludeword: !is_exist_excludeword.length
+          ? reqData.excludeword
+          : undefined,
+      },
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
-  }
+  )
+    .then((ngdata) => res.status(200).json({ result: ngdata }))
+    .catch((err) => res.status(404).json({ nopostfound: "No Data found" }));
 };
 
 const getAllNgData = async (req, res) => {

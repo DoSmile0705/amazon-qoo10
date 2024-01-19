@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const path = require("path");
 const cors = require("cors");
-
+const cookieParser = require("cookie-parser");
 dotenv.config({ path: "./config/config.env" });
 connectDB();
 
@@ -11,16 +11,17 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://os3-389-27638.vs.sakura.ne.jp",
-      "https://os3-389-27638.vs.sakura.ne.jp/:5173",
-      "http://os3-389-27638.vs.sakura.ne.jp/:5173",
+      "https://os3-389-27638.vs.sakura.ne.jp:5173",
+      "http://os3-389-27638.vs.sakura.ne.jp:5173",
       "https://localhost:5173",
       "http://localhost:5173",
+      "http://localhost:4000",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+app.use(cookieParser());
 
 app.use(express.json({ extended: false }));
 

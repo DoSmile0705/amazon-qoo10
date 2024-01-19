@@ -4,39 +4,47 @@ import { BASE_URL } from "../../constant";
 
 export const getAllNgDatas = createAsyncThunk(
   "ngdata/getAllNgDatas",
-  async (userId,thunkAPI) => {
-    const {data:{ngdata}} = await axios.get(`${BASE_URL}/api/ngdata/${userId}`);
+  async (userId, thunkAPI) => {
+    const {
+      data: { ngdata },
+    } = await axios.get(`/api/ngdata/${userId}`);
     return ngdata;
   }
 );
 
 export const addNg = createAsyncThunk(
   "ngdata/addNgData",
-  async (data, thunkAPI) => {
-    let {data:{result}} = await axios.post(`${BASE_URL}/api/ngdata`, data);
+  async (ngdata, thunkAPI) => {
+    let {
+      data: { result },
+    } = await axios.post(`/api/ngdata`, ngdata);
     return result;
   }
 );
 export const setstateNg = createAsyncThunk(
   "ngdata/useNg",
   async (data, thunkAPI) => {
-    let {data:{ngdata}} = await axios.post(`${BASE_URL}/api/ngdata/useNg`, {data:data});
+    let {
+      data: { ngdata },
+    } = await axios.post(`/api/ngdata/useNg`, { data: data });
     return ngdata;
   }
-)
+);
 export const deleteNgData = createAsyncThunk(
   "ngdata/deleteNg",
   async (data, thunkAPI) => {
-    let {data:{ngdata}} = await axios.post(`${BASE_URL}/api/ngdata/deleteNg`, {data:data});
+    let {
+      data: { ngdata },
+    } = await axios.post(`/api/ngdata/deleteNg`, { data: data });
     return ngdata;
   }
-)
+);
 
 const ngSlice = createSlice({
   name: "ng",
   initialState: {
     ngdatas: [],
-    check:false,
+    check: false,
   },
   reducers: {
     getNgDatas: (state, action) => {
@@ -65,7 +73,6 @@ const ngSlice = createSlice({
     [addNg.fulfilled]: (state, { payload }) => {
       state.loading = false;
       state.check = false;
-      
     },
     [addNg.rejected]: (state, action) => {
       state.loading = false;
@@ -81,7 +88,6 @@ const ngSlice = createSlice({
       state.loading = false;
       state.check = false;
       state.ngdatas = payload;
-      
     },
     [setstateNg.rejected]: (state, action) => {
       state.loading = false;
@@ -96,7 +102,6 @@ const ngSlice = createSlice({
     [deleteNgData.fulfilled]: (state, { payload }) => {
       state.loading = false;
       state.check = false;
-      
     },
     [deleteNgData.rejected]: (state, action) => {
       state.loading = false;

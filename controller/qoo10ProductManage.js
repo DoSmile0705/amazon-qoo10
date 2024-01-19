@@ -56,106 +56,99 @@ const getQoo10Category = async (req, res) => {
 };
 const setNewGoods = async (req, res) => {
   const certificationKey = await CreateCertificationKey();
-  console.log(certificationKey);
-
-  req.body.passedProducts.map(async (good, index) => {
-    console.log(good);
-    try {
-      const url =
-        "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ItemsBasic.qapi/SetNewGoods";
-      const requestConfig = {
-        headers: {
-          Giosiscertificationkey: certificationKey,
-        },
-        params: {
-          SecondSubCat: good.SecondSubCat,
-          OuterSecondSubCat: good.asin || "",
-          Drugtype: "1C" || "",
-          BrandNo: "",
-          ItemTitle: good.title.slice(0, 40) || "",
-          PromotionName: "",
-          SellerCode: "",
-          IndustrialCodeType: "",
-          IndustrialCode: "",
-          ModelNM: "",
-          ManufactureDate: "",
-          ProductionPlaceType: "1" || "",
-          ProductionPlace: good.manufacturer || "",
-          Weight: good.item_weight[0].value || "",
-          Material: "",
-          AdultYN: good.AdultYN ? "Y" : "N",
-          ContactInfo: "",
-          StandardImage: good.img[0].link || "",
-          VideoURL: null || "",
-          ItemDescription: good.description || "",
-          AdditionalOption: "",
-          ItemType: "",
-          RetailPrice: "11" || "",
-          ItemPrice: good?.qoo10_price || good.price,
-          ItemQty: good?.qoo10_quantity || "",
-          ExpireDate: "",
-          ShippingNo: "",
-          AvailableDateType: "0",
-          AvailableDateValue: "1",
-          Keyword: "",
-        },
-      };
-
-      const qooResult = await axios.get(url, requestConfig);
-      console.log("hey", qooResult.data);
-
-      if (!qooResult.data.ResultCode) {
-        await Product.findOneAndUpdate(
-          { _id: good._id },
-          {
-            status: good.status,
-            ItemCode: qooResult.data.ResultObject.GdNo,
-          }
-        );
-        const data = await Product.find({
-          status: "新規追加",
-          userId: good.userId,
-        });
-        let asins = data.map((pro) => {
-          return { flag: false, value: pro.asin };
-        });
-        let ngData = await NgData.find();
-        if (data.length) {
-          if (ngData.length) {
-            await NgData.updateOne(
-              { _id: ngData[0]._id },
-              { ngasin: [...ngData[0].ngasin, ...asins] }
-            )
-              .then((products) => {
-                console.log("ngsuccess");
-              })
-              .catch((err) => {
-                console.log("ngerror");
-              });
-          } else {
-            ngData = new NgData({
-              ngword: undefined,
-              excludeword: undefined,
-              ngcategory: undefined,
-              ngasin: asins,
-              ngbrand: undefined,
+  const url =
+    "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ItemsBasic.qapi/SetNewGoods";
+  const products = req.body.passedProducts;
+  let sentProducts = [];
+  for (i = 0; i < products.length; i++) {
+    const good = products[i];
+    const requestConfig = {
+      headers: {
+        Giosiscertificationkey: certificationKey,
+      },
+      params: {
+        SecondSubCat: good.SecondSubCat,
+        OuterSecondSubCat: good.asin || "",
+        Drugtype: "1C" || "",
+        BrandNo: "",
+        ItemTitle: good.title.slice(0, 40) || "",
+        PromotionName: "",
+        SellerCode: "",
+        IndustrialCodeType: "",
+        IndustrialCode: "",
+        ModelNM: "",
+        ManufactureDate: "",
+        AdditionalOption: good.asin,
+        ProductionPlaceType: "1" || "",
+        ProductionPlace: good.manufacturer || "",
+        Weight: good.package.weight.value || "",
+        Material: "",
+        AdultYN: good.AdultYN ? "Y" : "N",
+        ContactInfo: "",
+        StandardImage: good.img[0].link || "",
+        VideoURL: null || "",
+        ItemDescription: good.description || "",
+        ItemType: "",
+        RetailPrice: "11" || "",
+        ItemPrice: good?.qoo10_price || good.price,
+        ItemQty: good?.qoo10_quantity || 20,
+        ExpireDate: "",
+        ShippingNo: "",
+        AvailableDateType: "0",
+        AvailableDateValue: "1",
+        Keyword: "",
+      },
+    };
+    const qooResult = await axios.get(url, requestConfig);
+    console.log(qooResult.data);
+    if (!qooResult.data.ResultCode) {
+      await Product.findOneAndUpdate(
+        { _id: good._id },
+        {
+          status: good.status,
+          ItemCode: qooResult.data.ResultObject.GdNo,
+        }
+      ).then(async () => {
+        sentdata = await Product.find({ _id: good._id });
+        sentProducts.push(sentdata);
+      });
+      const data = await Product.find({
+        status: "新規追加",
+        userId: good.userId,
+      });
+      let asins = data.map((pro) => {
+        return { flag: false, value: pro.asin };
+      });
+      let ngData = await NgData.find();
+      if (data.length) {
+        if (ngData.length) {
+          await NgData.updateOne(
+            { _id: ngData[0]._id },
+            { ngasin: [...ngData[0].ngasin, ...asins] }
+          )
+            .then((products) => {
+              console.log("ngsuccess");
+            })
+            .catch((err) => {
+              console.log("ngerror");
             });
-            await ngData.save();
-          }
+        } else {
+          ngData = new NgData({
+            ngword: undefined,
+            excludeword: undefined,
+            ngcategory: undefined,
+            ngasin: asins,
+            ngbrand: undefined,
+          });
+          await ngData.save();
         }
       }
-      if (index === req.body.length - 1) {
-        res.status(200).json({
-          message: "qoo10に正確に出品されました。",
-          status: true,
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      res
-        .status(404)
-        .json({ message: "qoo10エロへの商品提出に失敗しました。" });
     }
+  }
+  res.status(200).json({
+    message: "qoo10に正確に出品されました。",
+    status: true,
+    products: sentProducts,
   });
   await Product.deleteMany({
     status: "新規追加",
@@ -228,9 +221,60 @@ const UpdateMydbOfQoo10 = async (ItemCode, last_quantity) => {
       // Handle the error
     });
 };
+const deleteProductOfQoo10Mydb = async (req, res) => {
+  if (req.body.status == "出品済み") {
+    const certificationKey = await CreateCertificationKey();
+    console.log(certificationKey);
+    const url =
+      "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ebayjapan.qapi";
+    const requestConfig = {
+      params: {
+        key: certificationKey,
+        v: "1.0",
+        returnType: "json",
+        method: "ItemsOptions.DeleteInventoryDataUnit",
+        ItemCode: req.body.ItemCode,
+        SellerCode: "",
+        OptionName: req.body.asin,
+        OptionValue: "",
+        OptionCode: "",
+      },
+    };
+    axios
+      .get(url, requestConfig)
+      .then(async (response) => {
+        if (response) {
+          if (!response.data.ResultCode) {
+            await Product.findOneAndDelete({ _id: req.body.id })
+              .then((product) => {
+                res.status(200).json(product);
+              })
+              .catch((error) => {
+                res.status(404).json();
+              });
+          } else {
+            res.status(404).json();
+          }
+        }
+      })
+      .catch((error) => {
+        // Handle the error
+        res.status(404).json();
+      });
+  } else {
+    await Product.findOneAndDelete({ _id: req.body._id })
+      .then((product) => {
+        res.status(200).json(product);
+      })
+      .catch((error) => {
+        res.status(404).json();
+      });
+  }
+};
 module.exports = {
   setNewGoods,
   updatePrice,
   getQoo10Category,
   UpdateMydbOfQoo10,
+  deleteProductOfQoo10Mydb,
 };

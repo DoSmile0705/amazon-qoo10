@@ -161,7 +161,7 @@ const authSlice = createSlice({
     [getUserDetails.fulfilled]: (state, { payload }) => {
       state.loading = false;
       state.userInfo = payload.user;
-      state.paymentStatus = payload.payment[0].paymentStatus;
+      state.paymentStatus = payload.payment[0].paymentStatus || false;
       state.userErrorMsg = "";
     },
     [getUserDetails.rejected]: (state, { payload }) => {

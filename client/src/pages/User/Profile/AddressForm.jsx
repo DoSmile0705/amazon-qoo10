@@ -86,15 +86,15 @@ const AddressForm = () => {
         {error && (
           <p className=" absolute text-[#f96464] text-sm top-28">{errMsg}</p>
         )}
-        <button
-          className="absolute top-4 right-4 sm:top-6 sm:right-6 text-dark-blue hover:text-dark-grayish-blue"
+        <Button
+          className="primary absolute top-4 right-4 sm:top-6 sm:right-6 text-dark-blue hover:text-dark-grayish-blue"
           onClick={() => {
             dispatch(hideAddressForm());
             clearErrors();
           }}
         >
           <ion-icon name="close" class="text-lg"></ion-icon>
-        </button>
+        </Button>
 
         <div className="relative mt-5 w-full lg:w-[45%]">
           <input
@@ -284,24 +284,25 @@ const AddressForm = () => {
             国
           </label>
         </div>
-        <button
+        <Button
           className={
-            " w-full h-14 max-w-lg lg:max-w-none bg-orange rounded-lg lg:rounded-xl mt-10 lg:ml-auto mb-2 text-white flex items-center justify-center lg:w-2/5 shadow-[inset_0_-1px_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#ffede1] hover:text-orange border transition-all duration-300" +
+            "primary w-full h-14 mt-10 " +
             (loading ? " cursor-not-allowed" : " ")
           }
           disabled={loading}
         >
           {loading ? (
             <div
-              className="spinner-border animate-spin inline-block w-4 h-4 border rounded-full"
+              className="spinner-border animate-spin 
+              inline-block w-4 h-4 border rounded-full"
               role="status"
             >
-              <span className="sr-only">ローディング中...</span>
+              <span className="sr-only"></span>
             </div>
           ) : (
             <>{addressIndex !== null ? <>住所を更新する</> : <>提出する</>}</>
           )}
-        </button>
+        </Button>
       </form>
     </>
   );
