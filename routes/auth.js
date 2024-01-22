@@ -22,8 +22,8 @@ dotenv.config();
 router.get("/", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    const payment = await Payment.find({ _id: user._id });
-
+    const payment = await Payment.find({ _id: user._id }).populate("");
+    console.log(user);
     if (!user) {
       return res.status(400).json({ msg: "user doesn't exist" });
     }
@@ -60,6 +60,7 @@ router.post(
         email,
         password,
       });
+
       let salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
 
@@ -68,11 +69,18 @@ router.post(
         _id: result._id,
       });
       const data = await payment.save();
-      const addprice = new AddPrice();
+      const addprice = new AddPrice({
+        _id: result._id,
+      });
       await addprice.save();
-      const transfee = new TransFee();
+      const transfee = new TransFee({
+        _id: result._id,
+      });
       await transfee.save();
-      const subQuantity = new SubQuantity();
+      const subQuantity = new SubQuantity({
+        _id: result._id,
+        subquantity: 10,
+      });
       await subQuantity.save();
       const ngdata = new NgData({
         _id: result._id,

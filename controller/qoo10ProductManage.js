@@ -3,26 +3,46 @@ const XLSX = require("xlsx");
 const Category = require("../models/category");
 const Product = require("../models/Product");
 const NgData = require("../models/NgData");
-
+const AmazonCategory = require("../models/amazonCategory");
+const TransFee = require("../models/TransFee");
 const workbook = XLSX.readFile("./qoo10category.xlsx");
+const amazonbook = XLSX.readFile("./CategoryMatch.xlsx");
 const worksheet = workbook.Sheets["Qoo10_CategoryInfo"];
+const amazonsheet = amazonbook.Sheets["CategoryMatch"];
+
 const createCategory = async () => {
-  const qoo10categorys = await Category.find();
-  if (qoo10categorys.length === 0) {
-    const good = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-    const documents = good.map((row, index) => {
-      if (index !== 0) {
-        return {
-          mainCategory: row[0],
-          mainCategoryName: row[1],
-          middleCategory: row[2],
-          middleCategoryName: row[3],
-          subCategory: row[4],
-          subCategoryName: row[5],
-        };
+  const good = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+  const documents = good.map((row, index) => {
+    return {
+      subCategory: row[4],
+      subCategoryName: row[5],
+    };
+  });
+  return documents;
+};
+
+const createAmazonCategory = async () => {
+  const amazoncategory = await AmazonCategory.find();
+  if (amazoncategory.length === 0) {
+    const amazonCategory = XLSX.utils.sheet_to_json(amazonsheet, { header: 1 });
+    const qoo10categories = await createCategory();
+
+    const documents = amazonCategory.map((row, index) => {
+      const data = row[0];
+      let category = "";
+      for (i = 0; i < qoo10categories.length; i++) {
+        if (data.includes(qoo10categories[i].subCategoryName)) {
+          category = qoo10categories[i].subCategory;
+          break;
+        }
       }
+      return {
+        categoryContent: row[0],
+        qoo10category: category || "300000207",
+      };
     });
-    Category.insertMany(documents)
+    console.log("document", documents);
+    AmazonCategory.insertMany(documents)
       .then((result) => {})
       .catch((err) => {
         console.error("ドキュメントの挿入エラー:", err);
@@ -30,7 +50,7 @@ const createCategory = async () => {
       .finally(() => {});
   }
 };
-createCategory();
+createAmazonCategory();
 const CreateCertificationKey = async () => {
   const url =
     "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/CertificationAPI.qapi/CreateCertificationKey";
@@ -55,6 +75,8 @@ const getQoo10Category = async (req, res) => {
     );
 };
 const setNewGoods = async (req, res) => {
+  const {passedProducts, userId} = req.body;
+  const transfee = await TransFee.find(_id, userId)
   const certificationKey = await CreateCertificationKey();
   const url =
     "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ItemsBasic.qapi/SetNewGoods";
@@ -62,6 +84,7 @@ const setNewGoods = async (req, res) => {
   let sentProducts = [];
   for (i = 0; i < products.length; i++) {
     const good = products[i];
+
     const requestConfig = {
       headers: {
         Giosiscertificationkey: certificationKey,

@@ -34,6 +34,7 @@ app.use("/api/create-subscription", require("./routes/stripe"));
 app.use("/api/products", require("./routes/getAmazonProduct"));
 app.use("/api/ngdata", require("./routes/ngData"));
 app.use("/api/qoo10", require("./routes/qoo10"));
+app.use("/api/exhibit", require("./routes/exhibit"));
 
 if (process.env.NODE_ENV === "production") {
   // Serve static files from the React app

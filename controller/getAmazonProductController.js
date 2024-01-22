@@ -48,7 +48,15 @@ const getAmazonProduct = async (asin) => {
         SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
       },
     });
-
+    let res = await spClient.callAPI({
+      operation: "listCatalogCategories",
+      endpoint: "catalogItems",
+      query: {
+        MarketplaceId: "A1VC38T7YXB528",
+        ASIN: "B0BWHZNYK5",
+      },
+    });
+    // console.log(res[0].parent);
     let catalog_item = await spClient.callAPI({
       operation: "getCatalogItem",
       endpoint: "catalogItems",
@@ -71,7 +79,7 @@ const getAmazonProduct = async (asin) => {
     console.error("ddd", error);
   }
 };
-
+getAmazonProduct("B0BWHZNYK5");
 const addProductToMydbBasic = async (asin, userId) => {
   const catalog_item = await getAmazonProduct(asin);
   if (catalog_item) {

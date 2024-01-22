@@ -2,12 +2,17 @@ const mongoose = require("mongoose");
 
 const TransFeeSchema = new mongoose.Schema(
   {
-    trans_fee1: { type: Number, default: 0 },
-    trans_fee2: { type: Number, default: 0 },
-    trans_fee3: { type: Number, default: 0 },
-    trans_fee4: { type: Number, default: 0 },
-    trans_fee5: { type: Number, default: 0 },
-    trans_fee6: { type: Number, default: 0 },
+    _id: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    transfee_1: { type: Number, default: 0 },
+    transfee_2: { type: Number, default: 0 },
+    transfee_3: { type: Number, default: 0 },
+    transfee_4: { type: Number, default: 0 },
+    transfee_5: { type: Number, default: 0 },
+    transfee_6: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
