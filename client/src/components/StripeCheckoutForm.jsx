@@ -71,15 +71,15 @@ export default function StripeCheckoutForm() {
   return (
     <form id="payment-form" onSubmit={handleSubmit} className="w-full">
       <PaymentElement id="payment-element" />
-      <button
+      <Button
         disabled={isLoading || !stripe || !elements}
         id="submit"
-        className="bg-blue-500 rounded text-white mt-6 py-3 px-4 font-semibold cursor-pointer w-full transition-all"
+        className="primary mt-6 py-3 px-4 font-semibold "
       >
         <span id="button-text">
           {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
         </span>
-      </button>
+      </Button>
       {message && <div id="payment-message">{message}</div>}
     </form>
   );

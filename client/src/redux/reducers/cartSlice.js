@@ -15,9 +15,9 @@ export const createUserCart = createAsyncThunk(
           "Content-Type": "application/json",
           "x-auth-token": userToken,
         },
-        params :{
-          _id: _id
-        }
+        params: {
+          _id: _id,
+        },
       };
       const config2 = {
         headers: {
@@ -25,19 +25,17 @@ export const createUserCart = createAsyncThunk(
           "x-auth-token": userToken,
         },
         data: {
-          products:products,
-          _id: _id
-        }
+          products: products,
+          _id: _id,
+        },
       };
 
-
       // GET THE USER'S CART
-      // let res = await axios.get(`${BASE_URL}/api/cart`, config);
+      // let res = await axios.get(`/api/cart`, config);
       // CHECK IF THE USER HAS A CART IN DB
       if (res.data === null) {
         // IF NO CART, CREATE CART
-      await axios.post(`${BASE_URL}/api/cart/`, config2);
-
+        await axios.post(`/api/cart/`, config2);
       } else {
         // IF CART EXIST, RETURN CART
       }

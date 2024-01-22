@@ -4,10 +4,11 @@ import React from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import {  useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { BASE_URL } from "../../constant";
 import { getUserDetails } from "../../redux/reducers/authSlice";
+import { Button } from "antd";
 
 const CheckoutForm = () => {
   const dispatch = useDispatch();
@@ -31,14 +32,14 @@ const CheckoutForm = () => {
     } else {
       const paymentMethodID = {
         id: paymentMethod.id,
-        userId: localStorage.getItem('userId')||''
+        userId: localStorage.getItem("userId") || "",
       };
 
       axios
-        .post(`${BASE_URL}/api/create-subscription`, paymentMethodID)
+        .post(`/api/create-subscription`, paymentMethodID)
         .then((res) => {
           let subscriptionData = res.data;
-          dispatch(getUserDetails())
+          dispatch(getUserDetails());
           navigate("/product");
         })
         .catch((err) => {});
@@ -61,14 +62,13 @@ const CheckoutForm = () => {
               id="payment-element"
               className="relative w-full mb-2 py-3 text-lg"
             />
-            <button
-              type="submit"
+            <Button
+              htmlType="submit"
               disabled={!stripe}
-              className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
-              >
+              className="primary h-[40px] w-full  mb-2"
+            >
               Pay
-            </button>
-           
+            </Button>
           </form>
         </div>
       </div>

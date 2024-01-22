@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { removeError } from "../../../redux/reducers/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { UserOutlined } from '@ant-design/icons';
-import { Button, Form, Input, Select } from 'antd';
+import { UserOutlined } from "@ant-design/icons";
+import { Button, Form, Input, InputNumber, Select } from "antd";
 import {
   cancelUpdate,
   enableUpdate,
@@ -13,7 +13,7 @@ import {
 const Settings = () => {
   const [form] = Form.useForm();
   const formItemLayout = {
-    labelAlign:"left",
+    labelAlign: "left",
     labelCol: {
       xs: {
         span: 6,
@@ -38,8 +38,7 @@ const Settings = () => {
     mode: "onChange",
   });
 
-  const { userInfo, loading } =
-    useSelector((state) => state.auth);
+  const { userInfo, loading } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
   const { reset } = useForm();
@@ -74,111 +73,68 @@ const Settings = () => {
       </p>
       <hr className="border-b border-grayish-blue mt-3 mb-8" />
 
-      <Form form={form} name="normal_login"
+      <Form
+        form={form}
+        name="normal_login"
         className="login-form pt-5 text-left px-6 min-w-full h-[344px]"
         initialValues={{ remember: true }}
         onChange={removeErrMsg}
-        onFinish={submitForm}>
-        <Form.Item
-          name="email"
-          label={<label className='h-10'>電子メール<br/>アドレス</label>}
-          {...formItemLayout}
-          
-          rules={[
-            {
-              type: 'email',
-              message: '入力された電子メールは無効です。',
-            },
-            {
-              message: 'メールアドレスを入力してください。',
-            },
-          ]}
-          hasFeedback
-        >
-          <Input defaultValue={userInfo.email} prefix={<UserOutlined className="site-form-item-icon" />} size="large" placeholder="business@gmail.com"  {...register("email")} />
-        </Form.Item>
-        <Form.Item
-          name="username"
-          label="ユーザー名"
-          {...formItemLayout}
-
-          rules={[
-            {
-              type: 'text',
-              message: '入力された電子メールは無効です。',
-            },
-            {
-              message: 'メールアドレスを入力してください。',
-            },
-          ]}
-          hasFeedback
-        >
-          <Input defaultValue={userInfo.username} prefix={<UserOutlined className="site-form-item-icon" />} size="large" placeholder="business@gmail.com"  {...register("email")} />
-        </Form.Item>
+        onFinish={submitForm}
+      >
+      
+       
         <Form.Item
           name="phone"
           label="電話番号"
           {...formItemLayout}
-
           rules={[
             {
-              type: 'text',
-              message: '入力された電子メールは無効です。',
+              type: "text",
+              message: "入力された電子メールは無効です。",
             },
             {
-              message: 'メールアドレスを入力してください。',
+              message: "メールアドレスを入力してください。",
             },
           ]}
           hasFeedback
         >
-          <Input defaultValue={userInfo.phone} prefix={<UserOutlined className="site-form-item-icon" />} size="large" placeholder="business@gmail.com"  {...register("email")} />
-        </Form.Item>
-        <Form.Item
-          name="gender"
-          label="性 別"
-          {...formItemLayout}
-          rules={[
-            {
-            },
-          ]}
-        >
-          <Select
-            placeholder="男"
-            allowClear
+          <InputNumber
+            defaultValue={userInfo.phone}
+            prefix={<UserOutlined className="site-form-item-icon" />}
             size="large"
-            defaultValue={userInfo.gender}
-          >
-            <Option value="male">男</Option>
-            <Option value="female">女</Option>
-            <Option value="other">その他</Option>
-          </Select>
+            placeholder="business@gmail.com"
+            {...register("email")}
+          />
         </Form.Item>
+        
         <Form.Item shouldUpdate className="w-full">
-          {() => (<div className="text-right">
-            <Button
-              className="w-[120px]  m-auto mb-3 mt-3"
-              type="default"
-              htmlType="submit"
-              size="large"
-              disabled={
-                loading ||
-                // !clientReady ||
-                !!form.getFieldsError().filter(({ errors }) => errors.length).length
-              }
-            >
-              {loading ? (
-                <div
-                  className=" spinner-border animate-spin inline-block w-4 h-4 border rounded-full"
-                  role="status"
-                >
-                  <span className="sr-only">ローディング中...</span>
-                </div>
-              ) : (
-                <span className="text-[12px]">更新</span>
-              )}
-            </Button>
-
-          </div>)}
+          {() => (
+            <div className="text-right">
+              <Button
+                className="primary w-[120px]  m-auto mb-3 mt-3"
+                type="default"
+                htmlType="submit"
+                size="large"
+                disabled={
+                  loading ||
+                  // !clientReady ||
+                  !!form.getFieldsError().filter(({ errors }) => errors.length)
+                    .length
+                }
+              >
+                {loading ? (
+                  <div
+                    className=" spinner-border animate-spin inline-block w-4 h-4 border rounded-full"
+                    role="status"
+                  >
+                    <span className="sr-only">ローディング中...</span>
+                  </div>
+                ) : (
+                  <span className="text-[12px]">更新</span>
+                )}
+              </Button>
+            </div>
+          )}
         </Form.Item>
       </Form>
     </>

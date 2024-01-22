@@ -6,7 +6,10 @@ import { NavLink } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserDetails } from "../../redux/reducers/authSlice";
 import { Button, message, Avatar, Menu } from "antd";
-import { getAllProducts } from "../../redux/reducers/productSlice";
+import {
+  getAllProducts,
+  getQoo10Category,
+} from "../../redux/reducers/productSlice";
 import { UserOutlined } from "@ant-design/icons";
 
 const Header = () => {
@@ -37,6 +40,14 @@ const Header = () => {
         </NavLink>
       ),
       key: "ng",
+    },
+    {
+      label: (
+        <NavLink to="/exhibit-setting" className="text-lg font-bold">
+          出 品 設 定
+        </NavLink>
+      ),
+      key: "exhibit",
     },
   ];
   const displayMenu = () => {
@@ -74,13 +85,16 @@ const Header = () => {
       warning2();
     }
   }, [error, pro_error]);
-
+  useEffect(() => {
+    dispatch(getQoo10Category());
+    dispatch(getAllProducts(localStorage.getItem("userId")));
+  }, []);
   return (
     <header className=" md:px-10 h-[8vh] flex justify-between items-center sm:px-3 mx-auto relative z-10 shadow-lg">
       {contextHolder}
 
       <div className="left flex items-center lg:h-inherit ">
-        <div
+        {/* <div
           onClick={displayMenu}
           className="menu w-[100px] lg:hidden z-40 cursor-pointer"
         >
@@ -91,10 +105,10 @@ const Header = () => {
           >
             <ion-icon name="close-outline"></ion-icon>
           </div>
-        </div>
+        </div> */}
         <NavLink
           to=""
-          className=" w-[270px] z-50 text-3xl font-black text-center"
+          className=" w-[270px] z-50 text-2xl font-black text-center"
         >
           <span className="logo">無 在 庫 シ ス テ ム</span>
         </NavLink>
@@ -113,7 +127,9 @@ const Header = () => {
           </div>
           {!userInfo ? (
             <NavLink to="/login">
-              <Button type="primary">ログイン</Button>
+              <Button className="primary" type="primary">
+                ログイン
+              </Button>
             </NavLink>
           ) : (
             <NavLink

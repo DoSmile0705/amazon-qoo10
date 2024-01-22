@@ -32,6 +32,7 @@ const SettingNG = () => {
           value={wordOption.value}
         />
         <Button
+          className="primary"
           onClick={(e) => {
             use_Ng({
               kind: wordOption.kind,
@@ -67,6 +68,7 @@ const SettingNG = () => {
         <Button
           size="small"
           type="primary"
+          className="primary flex items-center"
           danger
           shape="round"
           onClick={() => {
@@ -89,20 +91,19 @@ const SettingNG = () => {
     const { name, value } = event.target;
     setNgData((prevState) => ({
       ...prevState,
-      [name]: { value: value, flag: false },
+      [name]: { value: value, flag: true },
     }));
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    dispatch(addNg(ngData));
+    dispatch(addNg({ ...ngData, userId: userInfo._id }));
     setNgData({
       ngword: undefined,
       excludeword: undefined,
       ngcategory: undefined,
       ngasin: undefined,
       ngbrand: undefined,
-      userId: userInfo._id,
     });
   };
   const use_Ng = (data) => {
@@ -124,254 +125,263 @@ const SettingNG = () => {
 
   return (
     <section className="absolute h-[92vh] w-full py-3 ">
-      <div className="flex gap-3 justify-between h-full px-3">
-        <div className="card ng-main-content w-full h-full">
-          <div className="flex w-full gap-3 mb-2">
-            <div className=" w-[50%]">
-              <Badge.Ribbon text="NGワード" color="DodgerBlue">
-                <Card size="small ng-card">
-                  <div className="exhi_words">
-                    {ngdatas.length
-                      ? ngdatas[0].ngword.map((word, index) => {
-                          return (
-                            <Popover
-                              content={content}
-                              onClick={() => {
-                                setOrwordOption({ ...word, kind: "ngword" });
-                                setWordOption({ ...word, kind: "ngword" });
-                              }}
-                              title="設定"
-                              trigger="click"
-                            >
-                              <div key={index} className="exhi_word">
-                                <div className="exhi_word_item">
-                                  <label>{word.value}</label>
+      <div className="flex gap-3 justify-between h-full px-3 ">
+        <div className="card ng-main-content w-full h-full ">
+          <div className="">
+            <div className="flex w-full gap-3 mb-2">
+              <div className=" w-[50%]">
+                <Badge.Ribbon text="NGワード" color="DodgerBlue">
+                  <Card size="small ng-card">
+                    <div className="exhi_words">
+                      {ngdatas.length
+                        ? ngdatas[0].ngword.map((word, index) => {
+                            return (
+                              <Popover
+                                content={content}
+                                onClick={() => {
+                                  setOrwordOption({ ...word, kind: "ngword" });
+                                  setWordOption({ ...word, kind: "ngword" });
+                                }}
+                                title="設定"
+                                trigger="click"
+                              >
+                                <div key={index} className="exhi_word">
+                                  <div className="exhi_word_item">
+                                    <label>{word.value}</label>
+                                  </div>
+                                  <svg
+                                    className={
+                                      word.flag ? "activate_ng" : "disabled_ng"
+                                    }
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="1.8"
+                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                  </svg>
                                 </div>
-                                <svg
-                                  className={
-                                    word.flag ? "activate_ng" : "disabled_ng"
-                                  }
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                  />
-                                </svg>
-                              </div>
-                            </Popover>
-                          );
-                        })
-                      : "内容なし"}
-                  </div>
-                </Card>
-              </Badge.Ribbon>
+                              </Popover>
+                            );
+                          })
+                        : "内容なし"}
+                    </div>
+                  </Card>
+                </Badge.Ribbon>
+              </div>
+              <div className=" w-[50%]">
+                <Badge.Ribbon text="除外ワード" color="DodgerBlue">
+                  <Card size="small ng-card">
+                    <div className="exhi_words">
+                      {ngdatas.length
+                        ? ngdatas[0].excludeword.map((word, index) => {
+                            return (
+                              <Popover
+                                content={content}
+                                onClick={() => {
+                                  setOrwordOption({
+                                    ...word,
+                                    kind: "excludeword",
+                                  });
+                                  setWordOption({
+                                    ...word,
+                                    kind: "excludeword",
+                                  });
+                                }}
+                                title="設定"
+                                trigger="click"
+                              >
+                                <div key={index} className="exhi_word">
+                                  <div className="exhi_word_item">
+                                    <label>{word.value}</label>
+                                  </div>
+                                  <svg
+                                    className={
+                                      word.flag ? "activate_ng" : "disabled_ng"
+                                    }
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="1.8"
+                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                  </svg>
+                                </div>
+                              </Popover>
+                            );
+                          })
+                        : "内容なし"}
+                    </div>
+                  </Card>
+                </Badge.Ribbon>
+              </div>
             </div>
-            <div className=" w-[50%]">
-              <Badge.Ribbon text="除外ワード" color="DodgerBlue">
-                <Card size="small ng-card">
-                  <div className="exhi_words">
-                    {ngdatas.length
-                      ? ngdatas[0].excludeword.map((word, index) => {
-                          return (
-                            <Popover
-                              content={content}
-                              onClick={() => {
-                                setOrwordOption({
-                                  ...word,
-                                  kind: "excludeword",
-                                });
-                                setWordOption({ ...word, kind: "excludeword" });
-                              }}
-                              title="設定"
-                              trigger="click"
-                            >
-                              <div key={index} className="exhi_word">
-                                <div className="exhi_word_item">
-                                  <label>{word.value}</label>
+            <div className="flex w-full gap-3 mb-2">
+              <div className=" w-[50%]">
+                <Badge.Ribbon text="NGカテゴリ" color="DodgerBlue">
+                  <Card size="small ng-card">
+                    <div className="exhi_words">
+                      {ngdatas.length
+                        ? ngdatas[0].ngcategory.map((word, index) => {
+                            return (
+                              <Popover
+                                content={content}
+                                onClick={() => {
+                                  setOrwordOption({
+                                    ...word,
+                                    kind: "ngcategory",
+                                  });
+                                  setWordOption({
+                                    ...word,
+                                    kind: "ngcategory",
+                                  });
+                                }}
+                                title="設定"
+                                trigger="click"
+                              >
+                                <div key={index} className="exhi_word">
+                                  <div className="exhi_word_item">
+                                    <label>{word.value}</label>
+                                  </div>
+                                  <svg
+                                    className={
+                                      word.flag ? "activate_ng" : "disabled_ng"
+                                    }
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="1.8"
+                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                  </svg>
                                 </div>
-                                <svg
-                                  className={
-                                    word.flag ? "activate_ng" : "disabled_ng"
-                                  }
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                  />
-                                </svg>
-                              </div>
-                            </Popover>
-                          );
-                        })
-                      : "内容なし"}
-                  </div>
-                </Card>
-              </Badge.Ribbon>
+                              </Popover>
+                            );
+                          })
+                        : "内容なし"}
+                    </div>
+                  </Card>
+                </Badge.Ribbon>
+              </div>
+              <div className=" w-[50%]">
+                <Badge.Ribbon text="NGASIN" color="DodgerBlue">
+                  <Card size="small ng-card">
+                    <div className="exhi_words">
+                      {ngdatas.length
+                        ? ngdatas[0].ngasin.map((word, index) => {
+                            return (
+                              <Popover
+                                content={content}
+                                onClick={() => {
+                                  setOrwordOption({ ...word, kind: "ngasin" });
+                                  setWordOption({ ...word, kind: "ngasin" });
+                                }}
+                                title="設定"
+                                trigger="click"
+                              >
+                                <div key={index} className="exhi_word">
+                                  <div className="exhi_word_item">
+                                    <label>{word.value}</label>
+                                  </div>
+                                  <svg
+                                    className={
+                                      word.flag ? "activate_ng" : "disabled_ng"
+                                    }
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="1.8"
+                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                  </svg>
+                                </div>
+                              </Popover>
+                            );
+                          })
+                        : "内容なし"}
+                    </div>
+                  </Card>
+                </Badge.Ribbon>
+              </div>
             </div>
-          </div>
-          <div className="flex w-full gap-3 mb-2">
-            <div className=" w-[50%]">
-              <Badge.Ribbon text="NGカテゴリ" color="DodgerBlue">
-                <Card size="small ng-card">
-                  <div className="exhi_words">
-                    {ngdatas.length
-                      ? ngdatas[0].ngcategory.map((word, index) => {
-                          return (
-                            <Popover
-                              content={content}
-                              onClick={() => {
-                                setOrwordOption({
-                                  ...word,
-                                  kind: "ngcategory",
-                                });
-                                setWordOption({ ...word, kind: "ngcategory" });
-                              }}
-                              title="設定"
-                              trigger="click"
-                            >
-                              <div key={index} className="exhi_word">
-                                <div className="exhi_word_item">
-                                  <label>{word.value}</label>
+
+            <div className="flex w-full">
+              <div className=" w-[50%]">
+                <Badge.Ribbon text="NGブランド" color="DodgerBlue">
+                  <Card size="small ng-card">
+                    <div className="exhi_words">
+                      {ngdatas.length
+                        ? ngdatas[0].ngbrand.map((word, index) => {
+                            return (
+                              <Popover
+                                content={content}
+                                onClick={() => {
+                                  setOrwordOption({ ...word, kind: "ngbrand" });
+                                  setWordOption({ ...word, kind: "ngbrand" });
+                                }}
+                                title="設定"
+                                trigger="click"
+                              >
+                                <div key={index} className="exhi_word">
+                                  <div className="exhi_word_item">
+                                    <label>{word.value}</label>
+                                  </div>
+                                  <svg
+                                    className={
+                                      word.flag ? "activate_ng" : "disabled_ng"
+                                    }
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="1.8"
+                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                  </svg>
                                 </div>
-                                <svg
-                                  className={
-                                    word.flag ? "activate_ng" : "disabled_ng"
-                                  }
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                  />
-                                </svg>
-                              </div>
-                            </Popover>
-                          );
-                        })
-                      : "内容なし"}
-                  </div>
-                </Card>
-              </Badge.Ribbon>
-            </div>
-            <div className=" w-[50%]">
-              <Badge.Ribbon text="NGASIN" color="DodgerBlue">
-                <Card size="small ng-card">
-                  <div className="exhi_words">
-                    {ngdatas.length
-                      ? ngdatas[0].ngasin.map((word, index) => {
-                          return (
-                            <Popover
-                              content={content}
-                              onClick={() => {
-                                setOrwordOption({ ...word, kind: "ngasin" });
-                                setWordOption({ ...word, kind: "ngasin" });
-                              }}
-                              title="設定"
-                              trigger="click"
-                            >
-                              <div key={index} className="exhi_word">
-                                <div className="exhi_word_item">
-                                  <label>{word.value}</label>
-                                </div>
-                                <svg
-                                  className={
-                                    word.flag ? "activate_ng" : "disabled_ng"
-                                  }
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                  />
-                                </svg>
-                              </div>
-                            </Popover>
-                          );
-                        })
-                      : "内容なし"}
-                  </div>
-                </Card>
-              </Badge.Ribbon>
-            </div>
-          </div>
-          <div className="flex w-full">
-            <div className=" w-[50%]">
-              <Badge.Ribbon text="NGブランド" color="DodgerBlue">
-                <Card size="small ng-card">
-                  <div className="exhi_words">
-                    {ngdatas.length
-                      ? ngdatas[0].ngbrand.map((word, index) => {
-                          return (
-                            <Popover
-                              content={content}
-                              onClick={() => {
-                                setOrwordOption({ ...word, kind: "ngbrand" });
-                                setWordOption({ ...word, kind: "ngbrand" });
-                              }}
-                              title="設定"
-                              trigger="click"
-                            >
-                              <div key={index} className="exhi_word">
-                                <div className="exhi_word_item">
-                                  <label>{word.value}</label>
-                                </div>
-                                <svg
-                                  className={
-                                    word.flag ? "activate_ng" : "disabled_ng"
-                                  }
-                                  aria-hidden="true"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    stroke="currentColor"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                  />
-                                </svg>
-                              </div>
-                            </Popover>
-                          );
-                        })
-                      : "内容なし"}
-                  </div>
-                </Card>
-              </Badge.Ribbon>
+                              </Popover>
+                            );
+                          })
+                        : "内容なし"}
+                    </div>
+                  </Card>
+                </Badge.Ribbon>
+              </div>
             </div>
           </div>
         </div>
-        <div className="card py-10">
+        <div className="card py-5">
           <form
-            className=" min-w-[300px]  h-full flex flex-col justify-between"
+            className=" min-w-[300px] pt-5 pb-[10px]  h-full flex flex-col justify-between"
             onSubmit={handleSubmit}
           >
             <div className="">
@@ -467,12 +477,12 @@ const SettingNG = () => {
               </div>
             </div>
             <div>
-              <button
-                className="h-[40px] w-full mt-8 rounded-md mb-2 text-white flex items-center justify-center border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-blue transition-all duration-300"
-                type="submit"
+              <Button
+                className="primary h-[40px] w-full mt-8 mb-2"
+                htmlType="submit"
               >
                 追 加
-              </button>
+              </Button>
             </div>
           </form>
         </div>

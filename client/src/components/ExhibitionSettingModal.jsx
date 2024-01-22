@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { exhibitProducts } from "../redux/reducers/productSlice";
 import { getAllNgDatas } from "../redux/reducers/ngSlice";
 import { CloseCircleOutlined } from "@ant-design/icons";
+import { Button } from "antd";
 
 const ExhibitionSettingModal = (props) => {
   const [passedProducts, setPassedProduct] = useState();
@@ -28,7 +29,8 @@ const ExhibitionSettingModal = (props) => {
     let checkProducts = [];
     let excepted_Products = [];
 
-    productData.map((product, index) => {
+    props.checkedItems.map((key) => {
+      const product = productData[key - 1];
       let title = product.title.toLowerCase();
       let Cbullet_point = "";
       product.bullet_point.map((bull) => {
@@ -36,69 +38,66 @@ const ExhibitionSettingModal = (props) => {
       });
       let total = title + Cbullet_point;
       let asin = product.asin.toLowerCase();
-
-      if (props.checkedItems[index]) {
-        // -ngword check
-        let isexcept = false;
-        ngDataObject[0]?.ngword.map((word, index) => {
-          if (!isexcept && word.flag) {
-            if (total.includes(word.value.toLowerCase())) {
+      // -ngword check
+      let isexcept = false;
+      ngDataObject[0]?.ngword.map((word, index) => {
+        if (!isexcept && word.flag) {
+          if (total.includes(word.value.toLowerCase())) {
+            isexcept = true;
+          }
+        }
+      });
+      // -ngcategory check
+      if (!isexcept) {
+        ngDataObject[0]?.ngcategory.map((category, index) => {
+          if (!isexcept && category.flag) {
+            // title check
+            if (asin.includes(category.value.toLowerCase())) {
               isexcept = true;
             }
           }
         });
-        // -ngcategory check
-        if (!isexcept) {
-          ngDataObject[0]?.ngcategory.map((category, index) => {
-            if (!isexcept && category.flag) {
-              // title check
-              if (asin.includes(category.value.toLowerCase())) {
-                isexcept = true;
-              }
+      }
+      // -ngAsin check
+      if (!isexcept) {
+        ngDataObject[0]?.ngasin.map((ngas, index) => {
+          if (!isexcept && ngas.flag) {
+            // title check
+            if (asin.includes(ngas.value.toLowerCase())) {
+              isexcept = true;
             }
-          });
-        }
-        // -ngAsin check
-        if (!isexcept) {
-          ngDataObject[0]?.ngasin.map((ngas, index) => {
-            if (!isexcept && ngas.flag) {
-              // title check
-              if (asin.includes(ngas.value.toLowerCase())) {
-                isexcept = true;
-              }
+          }
+        });
+      }
+      // -ngBrand check
+      if (!isexcept) {
+        ngDataObject[0]?.ngbrand.map((brand, index) => {
+          if (!isexcept && brand.flag) {
+            // title check
+            if (asin.includes(brand.value.toLowerCase())) {
+              isexcept = true;
             }
-          });
-        }
-        // -ngBrand check
-        if (!isexcept) {
-          ngDataObject[0]?.ngbrand.map((brand, index) => {
-            if (!isexcept && brand.flag) {
-              // title check
-              if (asin.includes(brand.value.toLowerCase())) {
-                isexcept = true;
-              }
-            }
-          });
-        }
-        // input products
-        if (!isexcept) {
-          let editedTitle = "";
-          let description = "";
-          ngDataObject[0]?.excludeword.map((word) => {
-            if (word.flag) {
-              editedTitle = product.title.replace(word.value, "____");
-              description = Cbullet_point.replace(word.value, "____");
-            }
-          });
-          checkProducts.push({
-            ...product,
-            title: editedTitle || product.title,
-            description: description || product.description,
-            status: "出品済み",
-          });
-        } else if (isexcept) {
-          excepted_Products.push(product);
-        }
+          }
+        });
+      }
+      // input products
+      if (!isexcept) {
+        let editedTitle = "";
+        let description = "";
+        ngDataObject[0]?.excludeword.map((word) => {
+          if (word.flag) {
+            editedTitle = product.title.replace(word.value, "____");
+            description = Cbullet_point.replace(word.value, "____");
+          }
+        });
+        checkProducts.push({
+          ...product,
+          title: editedTitle || product.title,
+          description: description || product.description,
+          status: "出品済み",
+        });
+      } else if (isexcept) {
+        excepted_Products.push(product);
       }
     });
     setPassedProduct(checkProducts);
@@ -122,15 +121,13 @@ const ExhibitionSettingModal = (props) => {
           <div className="products-temple">
             <label className="check-kind">追加された製品</label>
             <div className="products-list flex gap-x-5 mt-1 justify-start">
-              {productData?.map((product, index) => {
-                if (props.checkedItems[index]) {
-                  return (
-                    <div key={index} className="product-item">
-                      <img src={product.img[0].link}></img>
-                      <label>{product.title}</label>
-                    </div>
-                  );
-                }
+              {props.checkedItems.map((key) => {
+                return (
+                  <div key={key} className="product-item">
+                    <img src={productData[key - 1].img[0].link}></img>
+                    <label>{productData[key - 1].title}</label>
+                  </div>
+                );
               }) || "内容なし"}
             </div>
           </div>
@@ -165,24 +162,22 @@ const ExhibitionSettingModal = (props) => {
             </div>
           </div>
           <div className="product_btns mx-5 flex gap-5">
-            <button
+            <Button
               onClick={() => {
                 ngCheck();
               }}
-              className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
+              className="blue-btn h-[40px] w-full mb-2 primary"
             >
-              {" "}
               ng検査
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 exhibit_Products();
               }}
-              className="blue-btn h-[40px] w-full flex justify-center items-center rounded-md mb-2 text-white  border border-blue shadow-[inset_0_0_0_0_#ffede1] hover:shadow-[inset_0_-4rem_0_0_#909de9] hover:text-white transition-all duration-300"
+              className="blue-btn h-[40px] w-full mb-2 primary"
             >
-              {" "}
               出 品
-            </button>
+            </Button>
           </div>
         </div>
       </div>

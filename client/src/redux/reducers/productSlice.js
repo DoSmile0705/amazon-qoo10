@@ -7,17 +7,24 @@ export const getAllProducts = createAsyncThunk(
   async (userId, thunkAPI) => {
     let {
       data: { products },
-    } = await axios.get(`${BASE_URL}/api/products/`, {
+    } = await axios.get(`/api/products/`, {
       params: { userId: userId },
     });
     return products;
   }
 );
-
+export const addProductByFile = createAsyncThunk(
+  "product/addProductByFile",
+  async (data, thunkAPI) => {
+    const response = await axios.post(`/api/products/upload`, data);
+    console.log(response.data);
+    return response.data;
+  }
+);
 export const addProduct = createAsyncThunk(
   "product/addProduct",
   async (data, thunkAPI) => {
-    const response = await axios.post(`${BASE_URL}/api/products/add`, data);
+    const response = await axios.post(`/api/products/add`, data);
     return response.data;
   }
 );
@@ -25,14 +32,17 @@ export const addProduct = createAsyncThunk(
 export const updateProduct = createAsyncThunk(
   "product/updateProduct",
   async (editedProduct, thunkAPI) => {
-    const res = await axios.post(`${BASE_URL}/api/products`, editedProduct);
+    const res = await axios.post(`/api/products`, editedProduct);
+
     return res.data;
   }
 );
+
 export const exhibitProducts = createAsyncThunk(
   "product/exhibitProducts",
   async (products, thunkAPI) => {
-    const res = await axios.post(`${BASE_URL}/api/qoo10/exhibit`, products);
+    const res = await axios.post(`/api/qoo10/exhibit`, products);
+    console.log(res);
     return res.data;
   }
 );
@@ -41,8 +51,15 @@ export const getQoo10Category = createAsyncThunk(
   async (thunkAPI) => {
     let {
       data: { categories },
-    } = await axios.get(`${BASE_URL}/api/qoo10/category`);
+    } = await axios.get(`/api/qoo10/category`);
     return categories;
+  }
+);
+export const deleteProduct = createAsyncThunk(
+  "product/deleteProduct",
+  async (data, thunkAPI) => {
+    const res = await axios.post(`/api/qoo10/`, data);
+    return res.data;
   }
 );
 const productSlice = createSlice({
@@ -169,6 +186,7 @@ const productSlice = createSlice({
   extraReducers: {
     [getAllProducts.pending]: (state) => {
       state.loading = true;
+      state.successMsg = "";
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
       state.loading = false;
@@ -192,6 +210,18 @@ const productSlice = createSlice({
       state.error = true;
       state.errMsg = action.error.message;
     },
+    [addProductByFile.pending]: (state) => {
+      state.loading = true;
+      state.uploading = true;
+    },
+    [addProductByFile.fulfilled]: (state) => {
+      state.loading = false;
+      state.uploading = false;
+    },
+    [addProductByFile.rejected]: (state) => {
+      state.loading = false;
+      state.uploading = false;
+    },
     [addProduct.pending]: (state) => {
       state.loading = true;
     },
@@ -212,17 +242,16 @@ const productSlice = createSlice({
       state.errMsg = action.error.message;
     },
     [updateProduct.pending]: (state) => {
-      state.uploading = true;
+      state.loading = true;
     },
     [updateProduct.fulfilled]: (state, { payload }) => {
-      // state.loading = false;
+      state.loading = false;
       state.products.map((product, index) => {
         if (product._id === payload.product._id) {
           state.products[index] = payload.product;
         }
       });
       state.successMsg = payload.message;
-      state.uploading = false;
     },
     [updateProduct.rejected]: (state, action) => {
       state.uploading = false;
@@ -230,16 +259,41 @@ const productSlice = createSlice({
       state.error = true;
       state.errMsg = action.error.message;
     },
+    [deleteProduct.pending]: (state) => {
+      state.loading = true;
+    },
+    [deleteProduct.fulfilled]: (state, { payload }) => {
+      state.loading = false;
+      console.log(payload);
+      state.products = state.products.filter((product) => {
+        return product._id !== payload._id;
+      });
+      // state.successMsg = payload.message;
+    },
+    [deleteProduct.rejected]: (state) => {
+      state.loading = false;
+    },
     [exhibitProducts.pending]: (state) => {
-      state.uploading = true;
+      state.loading = true;
       state.pro_error = false;
     },
     [exhibitProducts.fulfilled]: (state, { payload }) => {
       state.pro_error = false;
-      state.uploading = false;
+      state.loading = false;
+      state.error = true;
+      payload.products[0].map((pro, index) => {
+        console.log(pro);
+        state.products.map((product, index) => {
+          if (product._id === pro._id) {
+            state.products[index] = pro;
+          }
+        });
+      });
+
+      console.log(payload);
     },
     [exhibitProducts.rejected]: (state, action) => {
-      state.uploading = false;
+      state.loading = false;
       state.pro_error = true;
       state.pro_errMsg = action.error.message;
     },

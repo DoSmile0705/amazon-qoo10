@@ -13,35 +13,66 @@ import Settings from "../pages/User/Profile/Settings";
 import MyAccount from "../pages/User/Profile/MyAccount";
 import Password from "../pages/User/Profile/Password";
 import Main from "../components/layout/Main";
+import ExhibitSetting from "../pages/Exhibit-setting";
 
 const MyRoutes = () => {
   const { userInfo, paymentStatus } = useSelector((state) => state.auth);
-  return (<>
-    <Layout>
-      <Routes>
-        <Route index element={<Home />} />
-        <Route
-          path="/login"
-          element={userInfo ? <Navigate to="/" replace={true} /> : <Login />}
-        />
-        <Route
-          path="/register"
-          element={userInfo ? <Navigate to="/" replace={true} /> : <Register />}
-        />
-        <Route path="/" element={userInfo ? (paymentStatus ? <Main /> : <StripeProvider />) : <Login />} >
-          <Route path="product" element={<Product />} />
-          <Route path="ng-setting" element={<SettingNG />} />
-        </Route>
-        <Route path="/stripe" element={<StripeProvider />} />
-        <Route path="/user-profile" element={<UserProfile />}>
-          <Route path="" element={<MyAccount />} />
-          <Route path="password" element={<Password />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </Layout>
-
-  </>
+  console.log(paymentStatus);
+  return (
+    <>
+      <Layout>
+        <Routes>
+          <Route
+            index
+            element={
+              userInfo ? (
+                paymentStatus ? (
+                  <Home />
+                ) : (
+                  <StripeProvider />
+                )
+              ) : (
+                <Home />
+              )
+            }
+          />
+          <Route
+            path="/login"
+            element={userInfo ? <Navigate to="/" replace={true} /> : <Login />}
+          />
+          <Route
+            path="/register"
+            element={
+              userInfo ? <Navigate to="/" replace={true} /> : <Register />
+            }
+          />
+          <Route
+            path="/"
+            element={
+              userInfo ? (
+                paymentStatus ? (
+                  <Main />
+                ) : (
+                  <StripeProvider />
+                )
+              ) : (
+                <Login />
+              )
+            }
+          >
+            <Route path="product" element={<Product />} />
+            <Route path="ng-setting" element={<SettingNG />} />
+            <Route path="exhibit-setting" element={<ExhibitSetting />} />
+          </Route>
+          <Route path="/stripe" element={<StripeProvider />} />
+          <Route path="/user-profile" element={<UserProfile />}>
+            <Route path="" element={<MyAccount />} />
+            <Route path="password" element={<Password />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Layout>
+    </>
   );
 };
 

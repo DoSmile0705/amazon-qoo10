@@ -40,14 +40,20 @@ a {
   border-radius: 5px;
 }
 
-Button {
+.primary {
   background-color: #1565c0 !important;
   color: rgb(255, 255, 255) !important;
 }
-Button:hover {
+.primary:hover {
   background-color: #4b81bf !important;
 }
-
+.danger {
+  background-color: #f50057 !important;
+  color: white;
+}
+.danger:hover {
+  background-color: #f44280 !important;
+}
 /* =============common======== */
 
 .background {
@@ -212,4 +218,15 @@ Button:hover {
 }
 dl div {
   border-color: rgb(209, 206, 206) !important;
+}
+
+@media only screen and (max-width: 1200px) {
+  .main-table {
+    max-width: 60vw !important;
+  }
+}
+@media only screen and (max-width: 1024px) {
+  .main-table {
+    max-width: 50vw !important;
+  }
 }

@@ -4,7 +4,9 @@ const SellingPartner = require("amazon-sp-api");
 const app = express();
 const Product = require("../models/Product");
 const NgData = require("../models/NgData");
+const XLSX = require("xlsx");
 const { updatePrice, UpdateMydbOfQoo10 } = require("./qoo10ProductManage");
+const AddPrice = require("../models/AddPrice");
 
 require("dotenv").config({
   path: `../`,
@@ -46,6 +48,15 @@ const getAmazonProduct = async (asin) => {
         SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
       },
     });
+    let res = await spClient.callAPI({
+      operation: "listCatalogCategories",
+      endpoint: "catalogItems",
+      query: {
+        MarketplaceId: "A1VC38T7YXB528",
+        ASIN: "B0BWHZNYK5",
+      },
+    });
+    // console.log(res[0].parent);
     let catalog_item = await spClient.callAPI({
       operation: "getCatalogItem",
       endpoint: "catalogItems",
@@ -68,61 +79,86 @@ const getAmazonProduct = async (asin) => {
     console.error("ddd", error);
   }
 };
-
-const addProductToMydb = async (req, res) => {
-  try {
-    const asin = req.body.asin;
-    const catalog_item = await getAmazonProduct(asin);
+getAmazonProduct("B0BWHZNYK5");
+const addProductToMydbBasic = async (asin, userId) => {
+  const catalog_item = await getAmazonProduct(asin);
+  if (catalog_item) {
     let product = await Product.findOne({
       asin: asin,
-      userId: req.body.userId,
+      userId: userId,
     });
-    if (product) {
-      return res.status(400).send("製品はすでに存在します");
-    }
-    let bullet_point = "";
-    catalog_item.attributes.bullet_point.map((des) => {
-      bullet_point += des.value;
-    });
-    product = new Product({
-      asin: asin,
-      userId: req.body.userId,
-      title: catalog_item.summaries[0].itemName,
-      SecondSubCat: null,
-      img: catalog_item.images[0].images,
-      description: catalog_item.attributes.product_description
-        ? catalog_item.attributes.product_description[0].value
-        : bullet_point,
-      price: catalog_item.attributes.list_price[0].value,
-      qoo10_price: null,
-      predictableIncome: null,
-      bullet_point: catalog_item.attributes.bullet_point,
-      item_weight: catalog_item.attributes.item_weight[0],
-      item_package_weight: catalog_item.attributes.item_package_weight,
-      item_dimensions: catalog_item.dimensions[0].item,
-      quantity: "0",
-      package: catalog_item.dimensions[0].package,
-      brand: catalog_item.summaries[0].brand,
-      part_number: catalog_item.summaries[0].part_number,
-      manufacturer: catalog_item.summaries[0].manufacturer,
-      recommended_browse_nodes:
-        catalog_item.attributes.recommended_browse_nodes[0],
-      releaseDate: catalog_item.summaries[0].releaseDate,
-      itemClassification: catalog_item.summaries[0].itemClassification,
-      websiteDisplayGroup: catalog_item.summaries[0].websiteDisplayGroup,
-      websiteDisplayGroupName:
-        catalog_item.summaries[0].websiteDisplayGroupName,
-      AdultYN: catalog_item.summaries[0].adultProduct,
-    });
+    if (!product) {
+      let bullet_point = "";
+      catalog_item.attributes.bullet_point?.map((des) => {
+        bullet_point += des.value;
+      });
+      product = new Product({
+        asin: asin,
+        userId: userId,
+        title: catalog_item.summaries[0].itemName
+          ? catalog_item.summaries[0].itemName
+          : "",
+        SecondSubCat: null,
+        qoo10_img: catalog_item.images[0].images
+          ? catalog_item.images[0].images[0].link
+          : "",
+        img: catalog_item.images[0].images ? catalog_item.images[0].images : [],
+        description: catalog_item.attributes.product_description
+          ? catalog_item.attributes.product_description[0].value
+          : bullet_point,
+        price: catalog_item.attributes.list_price
+          ? catalog_item.attributes.list_price[0].value
+          : 0,
+        qoo10_price: null,
+        predictableIncome: null,
+        bullet_point: catalog_item.attributes.bullet_point
+          ? catalog_item.attributes.bullet_point
+          : [],
+        quantity: catalog_item.summaries[0].packageQuantity
+          ? catalog_item.summaries[0].packageQuantity
+          : "",
+        package: catalog_item.dimensions[0].package
+          ? catalog_item.dimensions[0].package
+          : "",
+        brand: catalog_item.summaries[0].brand
+          ? catalog_item.summaries[0].brand
+          : "",
+        part_number: catalog_item.summaries[0].part_number
+          ? catalog_item.summaries[0].part_number
+          : "",
+        manufacturer: catalog_item.summaries[0].manufacturer
+          ? catalog_item.summaries[0].manufacturer
+          : "",
+        releaseDate: catalog_item.summaries[0].releaseDate
+          ? catalog_item.summaries[0].releaseDate
+          : "",
+        AdultYN: catalog_item.summaries[0].adultProduct
+          ? catalog_item.summaries[0].adultProduct
+          : false,
+      });
+      await product
+        .save()
+        .then()
+        .catch((err) => {
+          console.log(err);
+        });
 
-    await product.save();
+      return product;
+    }
+  }
+};
+const addProductToMydb = async (req, res) => {
+  try {
+    const { asin, userId } = req.body;
+    const product = await addProductToMydbBasic(asin, userId);
     res.json({ product: product, message: "商品登録成功" });
   } catch (error) {}
 };
 const getAllProductOfMydb = async (req, res) => {
+  const addPrice = await AddPrice.find();
   Product.find({ userId: req.query.userId })
     .then((products) => {
-      res.json({ products });
+      res.json({ products: products, addPrice: addPrice });
       return products;
     })
     .catch((err) =>
@@ -136,23 +172,30 @@ const updateProductOfMydb = async (req, res) => {
     { asin: req.body.asin, userId: req.body.userId },
     { $set: req.body }
   )
-    .then((product) =>
-      res.json({ product: product, message: "商品情報変更成功" })
-    )
+    .then(async () => {
+      const product = await Product.find({
+        asin: req.body.asin,
+        userId: req.body.userId,
+      });
+      res.json({ product: product[0], message: "商品情報変更成功" });
+    })
     .catch((err) => res.status(404).json({ nopostfound: "No Products found" }));
 };
 const updateProductOfMydbRelatedToTime = async () => {
   const products = await Product.find();
   if (products.length) {
     products.map(async (product, index) => {
-      const asin = product.asin;
-      const catalog_item = await getAmazonProduct(asin);
-      const price = catalog_item?.attributes.list_price[0].value;
+      const catalog_item = await getAmazonProduct(product.asin);
+      const price = catalog_item?.attributes.list_price
+        ? catalog_item?.attributes.list_price[0].value
+        : 0;
       const qoo10_price =
-        price + product.odds_amount + (price * product.bene_rate) / 100;
+        price * 1 +
+        product.odds_amount * 1 +
+        (price * product.bene_rate * 1) / 100;
       Product.updateOne(
-        { asin: asin },
-        { $set: { price: price, qoo10_price: qoo10_price } }
+        { asin: product.asin },
+        { $set: { price: price, qoo10_price: qoo10_price.toFixed(2) || 0 } }
       )
         .then((product) => {})
         .catch((err) => {
@@ -207,10 +250,30 @@ const exhibitProducts = async (req, res) => {
 
   await Product.deleteMany({ status: "新規追加" });
 };
+const asinfileUpload = async (req, res) => {
+  const uploadedFile = req.file;
+  const workbook = XLSX.readFile(uploadedFile.path);
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  // Process and save the data to the database
+  jsonData.map(async (row, index) => {
+    await addProductToMydbBasic(row[0], req.body.userId)
+      .then(() => {
+        if (jsonData.length === index)
+          res.json({
+            message: "File uploaded successfully",
+            data: data,
+          });
+      })
+      .catch((err) => {});
+  });
+};
 
 module.exports = {
   getAllProductOfMydb,
   updateProductOfMydb,
   exhibitProducts,
   addProductToMydb,
+  asinfileUpload,
 };
