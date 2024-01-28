@@ -219,10 +219,22 @@ a {
 dl div {
   border-color: rgb(209, 206, 206) !important;
 }
-
+.ant-upload-list-text {
+  margin-left: 5px !important;
+  display: flex !important;
+  align-items: center !important;
+}
 @media only screen and (max-width: 1200px) {
   .main-table {
     max-width: 60vw !important;
+  }
+}
+@media only screen and (max-width: 1141px) {
+  .main-table {
+    max-width: 60vw !important;
+  }
+  .gutter-row:first-child {
+    width: 100%;
   }
 }
 @media only screen and (max-width: 1024px) {

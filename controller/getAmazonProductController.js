@@ -7,6 +7,7 @@ const NgData = require("../models/NgData");
 const XLSX = require("xlsx");
 const { updatePrice, UpdateMydbOfQoo10 } = require("./qoo10ProductManage");
 const AddPrice = require("../models/AddPrice");
+const loadstate = require("../models/loadstate");
 
 require("dotenv").config({
   path: `../`,
@@ -48,15 +49,60 @@ const getAmazonProduct = async (asin) => {
         SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
       },
     });
-    let res = await spClient.callAPI({
+    let category = await spClient.callAPI({
       operation: "listCatalogCategories",
       endpoint: "catalogItems",
       query: {
         MarketplaceId: "A1VC38T7YXB528",
-        ASIN: "B0BWHZNYK5",
+        ASIN: asin,
       },
     });
-    // console.log(res[0].parent);
+    // let category = await spClient.callAPI({
+    //   operation: "listCatalogCategories",
+    //   endpoint: "catalogItems",
+    //   query: {
+    //     MarketplaceId: "A1VC38T7YXB528",
+    //     ASIN: asin,
+    //   },
+    // });
+    // try {
+    //   let res = await spClient.callAPI({
+    //     operation: "getCompetitivePricing",
+    //     endpoint: "productPricing",
+    //     query: {
+    //       Asins: ["B0C553P2PC", "B09J2VGCY3"],
+    //       ItemType: "Asin",
+    //       MarketplaceId: "A1VC38T7YXB528",
+    //     },
+    //     options: {
+    //       version: "v0",
+    //       raw_result: true,
+    //       timeouts: {
+    //         response: 5000,
+    //         idle: 10000,
+    //         deadline: 30000,
+    //       },
+    //     },
+    //   });
+    // } catch (err) {
+    //   if (err.code) {
+    //     if (err.code === "API_RESPONSE_TIMEOUT")
+    //       console.log(
+    //         "SP-API ERROR: response timeout: " + err.timeout + "ms exceeded.",
+    //         err.message
+    //       );
+    //     if (err.code === "API_IDLE_TIMEOUT")
+    //       console.log(
+    //         "SP-API ERROR: idle timeout: " + err.timeout + "ms exceeded.",
+    //         err.message
+    //       );
+    //     if (err.code === "API_DEADLINE_TIMEOUT")
+    //       console.log(
+    //         "SP-API ERROR: deadline timeout: " + err.timeout + "ms exceeded.",
+    //         err.message
+    //       );
+    //   }
+    // }
     let catalog_item = await spClient.callAPI({
       operation: "getCatalogItem",
       endpoint: "catalogItems",
@@ -65,24 +111,27 @@ const getAmazonProduct = async (asin) => {
       },
       query: {
         marketplaceIds: "A1VC38T7YXB528",
-        includedData:
-          "attributes,dimensions,identifiers,images,productTypes,relationships,salesRanks,summaries",
+        includedData: "attributes,dimensions,images,summaries",
         locale: "ja_JP",
       },
       options: {
         version: "2022-04-01",
       },
     });
-
-    return catalog_item;
+    return {
+      ...catalog_item,
+      amaCat: category[0].ProductCategoryName,
+      amaparentCat:
+        category[category.length - 1].ProductCategoryName.split("関連製品")[0],
+    };
   } catch (error) {
     console.error("ddd", error);
   }
 };
-getAmazonProduct("B0BWHZNYK5");
+// getAmazonProduct("B0BTBKZY5L");
 const addProductToMydbBasic = async (asin, userId) => {
   const catalog_item = await getAmazonProduct(asin);
-  if (catalog_item) {
+  if (catalog_item && catalog_item.images[0].images.length) {
     let product = await Product.findOne({
       asin: asin,
       userId: userId,
@@ -99,8 +148,11 @@ const addProductToMydbBasic = async (asin, userId) => {
           ? catalog_item.summaries[0].itemName
           : "",
         SecondSubCat: null,
+        amaparentCat: catalog_item.amaparentCat,
+        amaCat: catalog_item.amaCat,
+
         qoo10_img: catalog_item.images[0].images
-          ? catalog_item.images[0].images[0].link
+          ? catalog_item.images[0].images[0]?.link
           : "",
         img: catalog_item.images[0].images ? catalog_item.images[0].images : [],
         description: catalog_item.attributes.product_description
@@ -152,13 +204,20 @@ const addProductToMydb = async (req, res) => {
     const { asin, userId } = req.body;
     const product = await addProductToMydbBasic(asin, userId);
     res.json({ product: product, message: "商品登録成功" });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({ message: error });
+  }
 };
 const getAllProductOfMydb = async (req, res) => {
+  const { userId, length } = req.query;
   const addPrice = await AddPrice.find();
-  Product.find({ userId: req.query.userId })
+  Product.find({ userId: userId })
     .then((products) => {
-      res.json({ products: products, addPrice: addPrice });
+      if (!length) {
+        res.json({ products: products, addPrice: addPrice });
+      } else {
+        res.json({ products: products.splice(length), addPrice: addPrice });
+      }
       return products;
     })
     .catch((err) =>
@@ -189,20 +248,18 @@ const updateProductOfMydbRelatedToTime = async () => {
       const price = catalog_item?.attributes.list_price
         ? catalog_item?.attributes.list_price[0].value
         : 0;
-      const qoo10_price =
-        price * 1 +
-        product.odds_amount * 1 +
-        (price * product.bene_rate * 1) / 100;
-      Product.updateOne(
-        { asin: product.asin },
-        { $set: { price: price, qoo10_price: qoo10_price.toFixed(2) || 0 } }
-      )
+
+      Product.updateOne({ asin: product.asin }, { $set: { price: price } })
         .then((product) => {})
         .catch((err) => {
           console.log(err);
         });
       if (product.status === "出品済み") {
-        updatePrice(product.ItemCode, qoo10_price);
+        const qoo10_price =
+          price * 1 +
+          product.odds_amount * 1 +
+          (price * product.bene_rate * 1) / 100;
+        updatePrice(product.ItemCode, qoo10_price.toFixed(2));
         UpdateMydbOfQoo10(product.ItemCode, product.qoo10_quantity);
       }
     });
@@ -255,18 +312,32 @@ const asinfileUpload = async (req, res) => {
   const workbook = XLSX.readFile(uploadedFile.path);
   const worksheet = workbook.Sheets[workbook.SheetNames[0]];
   const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
   // Process and save the data to the database
+  const result = await loadstate.find({ _id: req.body.userId });
+  const basicData = await Product.find({ userId: req.body.userId });
+  console.log(basicData.length);
+  if (!result.length) {
+    const newloadState = new loadstate({
+      _id: req.body.userId,
+      length: jsonData.length + basicData.length,
+    });
+    await newloadState.save();
+  } else {
+    await loadstate.findByIdAndUpdate(
+      { _id: req.body.userId },
+      { length: jsonData.length + basicData.length }
+    );
+  }
   jsonData.map(async (row, index) => {
-    await addProductToMydbBasic(row[0], req.body.userId)
-      .then(() => {
-        if (jsonData.length === index)
-          res.json({
-            message: "File uploaded successfully",
-            data: data,
-          });
-      })
-      .catch((err) => {});
+    if (index == 2) {
+      const data = await Product.find({ userId: req.body.userId });
+
+      res.json({
+        data,
+        totalLength: jsonData.length,
+      });
+    }
+    await addProductToMydbBasic(row[0], req.body.userId);
   });
 };
 

@@ -22,6 +22,7 @@ const SettingNG = () => {
 
   const content = (
     <div>
+      {console.log(ngdatas)}
       <Space.Compact style={{ width: "100%" }}>
         <Input
           onChange={(e) => {

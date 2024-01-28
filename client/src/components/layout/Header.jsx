@@ -87,7 +87,7 @@ const Header = () => {
   }, [error, pro_error]);
   useEffect(() => {
     dispatch(getQoo10Category());
-    dispatch(getAllProducts(localStorage.getItem("userId")));
+    dispatch(getAllProducts(localStorage.getItem("userId"), 0));
   }, []);
   return (
     <header className=" md:px-10 h-[8vh] flex justify-between items-center sm:px-3 mx-auto relative z-10 shadow-lg">

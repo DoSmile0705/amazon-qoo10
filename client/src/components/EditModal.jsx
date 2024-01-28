@@ -77,8 +77,8 @@ const EditModal = (props) => {
     setSubCategories(subC);
   }, [middleCategoryName]);
   return (
-    <div className="w-[1080px] overflow-auto  h-[90vh] bg-white">
-      <div className=" justify-between pt-2 items-center px-7">
+    <div className="w-[750px]  h-[650px] bg-white">
+      <div className=" justify-between items-center p-7">
         <div className="flex justify-end pr-5">
           <a onClick={props.onClick}>
             <CloseCircleOutlined className="text-[30px] cursor-pointer" />
@@ -95,8 +95,8 @@ const EditModal = (props) => {
       >
         <div className=" justify-between">
           <div className="card w-full">
-            <div className="flex gap-5">
-              <div className="">
+            <div className="flex gap-6 w-full">
+              <div className=" w-[200px] h-[200px]">
                 <label
                   htmlFor="出品"
                   className="block font-semibold text-gray-900 dark:text-white text-[16px] mb-[10px]"
@@ -106,7 +106,7 @@ const EditModal = (props) => {
                 <div className=" mb-4 mt-2">
                   <div className="main-img mb-3 m-auto flex justify-center">
                     <img
-                      className=" shadow-sm rounded-2xl w-[80px] h-[80px]"
+                      className=" shadow-sm rounded-2xl w-[120px] h-[120px]"
                       onClick={() => {
                         setOpen(true);
                       }}
@@ -114,99 +114,115 @@ const EditModal = (props) => {
                     ></img>
                   </div>
                 </div>
+                <div className="flex gap-1 justify-center items-center">
+                  <label className="text-[16px]">Asin</label>
+                  <span>{editedProduct.asin}</span>
+                </div>
               </div>
-              <div className="w-full">
-                <div className=" my-1 w-full flex gap-5">
+              <div className="flex gap-2">
+                <div className=" my-1 w-[200px] ">
+                  <label
+                    htmlFor="title"
+                    className="block w-[100px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                  >
+                    商 品 規 格
+                  </label>
+                  <div className="card-2 p-1 gap-2 w-[200px]">
+                    <div>
+                      <div>
+                        <label>幅:</label>
+                        <span className="ml-1">
+                          {editedProduct?.package.width
+                            ? editedProduct?.package.width.value.toPrecision(
+                                3
+                              ) + "inches"
+                            : "未決定"}
+                        </span>
+                      </div>
+                      <div>
+                        <label>高さ:</label>
+                        <span className="ml-1">
+                          {editedProduct?.package.height
+                            ? editedProduct?.package.height.value.toPrecision(
+                                3
+                              ) + "inches"
+                            : "未決定"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div>
+                        <label>長さ:</label>
+                        <span className="ml-1">
+                          {editedProduct?.package.length
+                            ? editedProduct?.package.length.value.toPrecision(
+                                3
+                              ) + "inches"
+                            : "未決定"}
+                        </span>
+                      </div>
+                      <div>
+                        <label>重量:</label>
+                        <span className="ml-1">
+                          {editedProduct?.package.weight
+                            ? editedProduct?.package.weight.value.toPrecision(
+                                3
+                              ) + "pounds"
+                            : "未決定"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className=" my-1 w-[100px] ">
                   <label
                     htmlFor="title"
                     className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
                   >
-                    タイトル:
+                    購 入 価 格:
                   </label>
-                  <TextArea
-                    showCount
-                    className=" text-black"
-                    placeholder="disable resize"
-                    style={{ height: 36, resize: "none" }}
-                    value={editedProduct?.title}
-                    onChange={(e) => {
-                      handleInputChange("title", e.target.value);
-                    }}
-                  />
+                  <div className="card-2 p-1 flex gap-2 w-[100px]">
+                    <span>{editedProduct?.price} ¥</span>
+                  </div>
                 </div>
-                <div className="flex gap-5">
-                  <div className=" my-1 w-[400px] flex gap-5">
-                    <label
-                      htmlFor="title"
-                      className="block w-[100px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                    >
-                      商 品 規 格
-                    </label>
-                    <div className="card-2 p-1 flex gap-2 w-[300px]">
-                      <div>
-                        <div>
-                          <label>幅:</label>
-                          <span className="ml-1">
-                            {editedProduct?.package.width.value.toPrecision(3)}{" "}
-                            inches
-                          </span>
-                        </div>
-                        <div>
-                          <label>高さ:</label>
-                          <span className="ml-1">
-                            {editedProduct?.package.height.value.toPrecision(3)}{" "}
-                            inches
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <div>
-                          <label>長さ:</label>
-                          <span className="ml-1">
-                            {editedProduct?.package.length.value.toPrecision(3)}{" "}
-                            inches
-                          </span>
-                        </div>
-                        <div>
-                          <label>重量:</label>
-                          <span className="ml-1">
-                            {editedProduct?.package.weight.value.toPrecision(3)}{" "}
-                            pounds
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className=" my-1 w-[200px] flex gap-5">
-                    <label
-                      htmlFor="title"
-                      className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                    >
-                      購 入 価 格:
-                    </label>
-                    <div className="card-2 p-1 flex gap-2 w-[100px]">
-                      <span>{editedProduct?.price} ¥</span>
-                    </div>
-                  </div>
-                  <div className=" my-1 w-[240px] flex gap-5">
-                    <label
-                      htmlFor="title"
-                      className="block w-[120px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                    >
-                      既定商品数量:
-                    </label>
-                    <div className="card-2 p-1 flex gap-2 w-[120px]">
-                      <span>
-                        {(editedProduct?.quantity == null && "未決定") ||
-                          editedProduct?.quantity}
-                      </span>
-                    </div>
+                <div className=" my-1 w-[100px] ">
+                  <label
+                    htmlFor="title"
+                    className="block w-[120px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                  >
+                    既定商品数量:
+                  </label>
+                  <div className="card-2 p-1 flex gap-2 w-[120px]">
+                    <span>
+                      {(editedProduct?.quantity == null && "未決定") ||
+                        editedProduct?.quantity}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
+            <div className="w-full">
+              <div className=" my-1 w-full ">
+                <label
+                  htmlFor="title"
+                  className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                >
+                  タイトル:
+                </label>
+                <TextArea
+                  showCount
+                  className=" text-black"
+                  placeholder="disable resize"
+                  style={{ height: 80, resize: "none" }}
+                  value={editedProduct?.title}
+                  onChange={(e) => {
+                    handleInputChange("title", e.target.value);
+                  }}
+                />
+              </div>
+            </div>
 
-            <div className="my-2 flex gap-5">
+            <div className="my-2 ">
               <label
                 htmlFor="description"
                 className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
@@ -225,7 +241,7 @@ const EditModal = (props) => {
               />
             </div>
           </div>
-          <div className="flex gap-4 w-full my-3">
+          {/* <div className="flex gap-4 w-full my-3">
             <div className="w-full text-center flex flex-col justify-between">
               <div className="card text-left">
                 <label
@@ -307,8 +323,8 @@ const EditModal = (props) => {
               </label>
               <div className="text-center">
                 <div className="card-2 w-full">
-                  <label  
-                    htmlFor="asin"  
+                  <label
+                    htmlFor="asin"
                     className="text-[16px] font-semibold text-gray-700 border-b border-dark-grayish-blue pb-2"
                   >
                     数 量 設 定
@@ -447,7 +463,7 @@ const EditModal = (props) => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           <Button className="h-[40px] w-full mb-2 primary" htmlType="submit">
             {" "}
             保存

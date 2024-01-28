@@ -148,13 +148,10 @@ const ExhibitSetting = () => {
   return (
     <>
       <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10  ">
-        <div className="card h-full w-full z-0">
-          <Row className="h-full w-full">
-            <Col
-              span={12}
-              className="w-full h-full flex justify-center items-center "
-            >
-              <div className="w-[500px] h-[600px] ">
+        <div className=" h-full w-full z-0">
+          <div className="h-full flex gap-5">
+            <div className="gutter-row w-full  card h-full flex justify-center items-center ">
+              <div className="w-[500px]  h-[600px] ">
                 <Form
                   {...layout}
                   onFinish={updatetransfee}
@@ -258,11 +255,8 @@ const ExhibitSetting = () => {
                   )}
                 </Form>
               </div>
-            </Col>
-            <Col
-              span={12}
-              className="w-full h-full flex justify-center items-center"
-            >
+            </div>
+            <div className="gutter-row w-full h-full card flex justify-center items-center">
               <div className="flex justify-between flex-col h-[600px]">
                 <div className="w-[500px] h-[300px] p-10　pt-0 card ">
                   <div className="flex justify-between justify-center items-center">
@@ -328,8 +322,8 @@ const ExhibitSetting = () => {
                   </Form>
                 </div>
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </div>
         <Modal
           open={isModalOpen}

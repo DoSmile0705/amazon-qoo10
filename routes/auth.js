@@ -30,7 +30,7 @@ router.get("/", verifyToken, async (req, res) => {
     res.json({ user, payment });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).send("");
   }
 });
 
@@ -65,14 +65,12 @@ router.post(
       user.password = await bcrypt.hash(password, salt);
 
       const result = await user.save();
+      console.log(result);
       const payment = new Payment({
         _id: result._id,
       });
       const data = await payment.save();
-      const addprice = new AddPrice({
-        _id: result._id,
-      });
-      await addprice.save();
+
       const transfee = new TransFee({
         _id: result._id,
       });

@@ -4,15 +4,16 @@ import { BASE_URL } from "../../constant";
 
 export const getAllProducts = createAsyncThunk(
   "product/getAllProducts",
-  async (userId, thunkAPI) => {
+  async (userId, length, thunkAPI) => {
     let {
       data: { products },
     } = await axios.get(`/api/products/`, {
-      params: { userId: userId },
+      params: { userId: userId, length: length },
     });
     return products;
   }
 );
+
 export const addProductByFile = createAsyncThunk(
   "product/addProductByFile",
   async (data, thunkAPI) => {
@@ -25,6 +26,7 @@ export const addProduct = createAsyncThunk(
   "product/addProduct",
   async (data, thunkAPI) => {
     const response = await axios.post(`/api/products/add`, data);
+    console.log(response);
     return response.data;
   }
 );
@@ -43,6 +45,7 @@ export const exhibitProducts = createAsyncThunk(
   async (products, thunkAPI) => {
     const res = await axios.post(`/api/qoo10/exhibit`, products);
     console.log(res);
+
     return res.data;
   }
 );
@@ -73,6 +76,9 @@ const productSlice = createSlice({
     income: [],
     qoo10categories: [],
     successMsg: "",
+    fileLength: 0,
+    loadstate: 0,
+    // each call +1, 2:end maininfo load, 4:ended price load, 6:ended category load
   },
   reducers: {
     getProducts: (state, action) => {
@@ -190,7 +196,11 @@ const productSlice = createSlice({
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
       state.loading = false;
-      state.products = payload;
+      if (state.products.length == 0) {
+        state.products = payload;
+      } else {
+        state.products.push(...payload);
+      }
       state.containFilters = state.products.map((item) => true);
     },
     [getAllProducts.rejected]: (state, action) => {
@@ -213,10 +223,14 @@ const productSlice = createSlice({
     [addProductByFile.pending]: (state) => {
       state.loading = true;
       state.uploading = true;
+      state.fileLength = 0;
     },
-    [addProductByFile.fulfilled]: (state) => {
+    [addProductByFile.fulfilled]: (state, { payload }) => {
       state.loading = false;
       state.uploading = false;
+      console.log(payload);
+      state.products = payload.data;
+      state.fileLength = payload.totalLength;
     },
     [addProductByFile.rejected]: (state) => {
       state.loading = false;
@@ -228,13 +242,15 @@ const productSlice = createSlice({
     [addProduct.fulfilled]: (state, { payload }) => {
       state.loading = false;
       // payload values
-      state.products.push(payload.product);
-      state.title = payload.product.title;
-      state.images = payload.product.img;
-      state.description = payload.product.description;
-      state.price = payload.product.price;
-      state.income = payload.product.income;
-      state.successMsg = payload.message;
+      if (payload.product) {
+        state.products.push(payload.product);
+        state.title = payload.product.title;
+        state.images = payload.product.img;
+        state.description = payload.product.description;
+        state.price = payload.product.price;
+        state.income = payload.product.income;
+        state.successMsg = payload.message;
+      }
     },
     [addProduct.rejected]: (state, action) => {
       state.loading = false;
@@ -278,16 +294,21 @@ const productSlice = createSlice({
       state.pro_error = false;
     },
     [exhibitProducts.fulfilled]: (state, { payload }) => {
+      console.log(payload);
       state.pro_error = false;
       state.loading = false;
-      state.error = true;
-      payload.products[0].map((pro, index) => {
-        console.log(pro);
+      state.error = false;
+      payload.products?.map((pro, index) => {
+        console.log(pro.status, pro[0]._id);
         state.products.map((product, index) => {
-          if (product._id === pro._id) {
-            state.products[index] = pro;
+          if (product._id === pro[0]._id && pro.status == "added") {
+            state.products[index] = pro[0];
           }
         });
+        if (pro.status == "failed") {
+          console.log("hey");
+          state.products.splice(index, 1);
+        }
       });
 
       console.log(payload);

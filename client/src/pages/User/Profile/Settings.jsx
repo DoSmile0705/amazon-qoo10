@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { removeError } from "../../../redux/reducers/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { UserOutlined } from "@ant-design/icons";
-import { Button, Form, Input, InputNumber, Select } from "antd";
+import { Button, Form, Input, Select } from "antd";
 import {
   cancelUpdate,
   enableUpdate,
@@ -81,8 +81,58 @@ const Settings = () => {
         onChange={removeErrMsg}
         onFinish={submitForm}
       >
-      
-       
+        <Form.Item
+          name="email"
+          label={
+            <label className="h-10">
+              電子メール
+              <br />
+              アドレス
+            </label>
+          }
+          {...formItemLayout}
+          rules={[
+            {
+              type: "email",
+              message: "入力された電子メールは無効です。",
+            },
+            {
+              message: "メールアドレスを入力してください。",
+            },
+          ]}
+          hasFeedback
+        >
+          <Input
+            defaultValue={userInfo.email}
+            prefix={<UserOutlined className="site-form-item-icon" />}
+            size="large"
+            placeholder="business@gmail.com"
+            {...register("email")}
+          />
+        </Form.Item>
+        <Form.Item
+          name="username"
+          label="ユーザー名"
+          {...formItemLayout}
+          rules={[
+            {
+              type: "text",
+              message: "入力された電子メールは無効です。",
+            },
+            {
+              message: "メールアドレスを入力してください。",
+            },
+          ]}
+          hasFeedback
+        >
+          <Input
+            defaultValue={userInfo.username}
+            prefix={<UserOutlined className="site-form-item-icon" />}
+            size="large"
+            placeholder="business@gmail.com"
+            {...register("email")}
+          />
+        </Form.Item>
         <Form.Item
           name="phone"
           label="電話番号"
@@ -98,7 +148,7 @@ const Settings = () => {
           ]}
           hasFeedback
         >
-          <InputNumber
+          <Input
             defaultValue={userInfo.phone}
             prefix={<UserOutlined className="site-form-item-icon" />}
             size="large"
@@ -106,7 +156,18 @@ const Settings = () => {
             {...register("email")}
           />
         </Form.Item>
-        
+        <Form.Item name="gender" label="性 別" {...formItemLayout} rules={[{}]}>
+          <Select
+            placeholder="男"
+            allowClear
+            size="large"
+            defaultValue={userInfo.gender}
+          >
+            <Option value="male">男</Option>
+            <Option value="female">女</Option>
+            <Option value="other">その他</Option>
+          </Select>
+        </Form.Item>
         <Form.Item shouldUpdate className="w-full">
           {() => (
             <div className="text-right">
