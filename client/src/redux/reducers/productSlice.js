@@ -195,11 +195,15 @@ const productSlice = createSlice({
       state.successMsg = "";
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
-      state.loading = false;
+      if (state.loadstate == 0 || state.loadstate == 6) state.loading = false;
       if (state.products.length == 0) {
         state.products = payload;
       } else {
-        state.products.push(...payload);
+        state.products.push(...payload.splice(state.products.length));
+      }
+      if (state.products.length == payload.length) {
+        state.loadstate = state.loadstate + 1;
+        state.loading = false;
       }
       state.containFilters = state.products.map((item) => true);
     },
@@ -226,8 +230,6 @@ const productSlice = createSlice({
       state.fileLength = 0;
     },
     [addProductByFile.fulfilled]: (state, { payload }) => {
-      state.loading = false;
-      state.uploading = false;
       console.log(payload);
       state.products = payload.data;
       state.fileLength = payload.totalLength;

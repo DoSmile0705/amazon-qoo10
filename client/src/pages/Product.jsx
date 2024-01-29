@@ -34,14 +34,12 @@ const Product = () => {
   const [newItems, setNewItems] = useState([]);
   const [file, setFile] = useState(null);
   const [asin, setAsin] = useState("");
-  const [loadstate, setLoadstate] = useState(0);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const { products, loading, successMsg, uploading, fileLength } = useSelector(
-    (state) => state.product
-  );
+  const { products, loading, successMsg, uploading, loadstate, fileLength } =
+    useSelector((state) => state.product);
   const { userInfo } = useSelector((state) => state.auth);
   const [table_products, SetTable_products] = useState(products || []);
   const [error_Msg, SetError_Msg] = useState(null);
@@ -132,16 +130,8 @@ const Product = () => {
     formData.append("file", file);
     formData.append("userId", userInfo._id);
     dispatch(addProductByFile(formData));
-    recallfunction();
-  };
-  let Loadstate = 0;
-  const recallfunction = () => {
-    setLoadstate((state) => state + 1);
-    Loadstate += 1;
-    if (Loadstate == 3) clearTimeout(mytimeout);
-    const mytimeout = setTimeout(function () {
+    setTimeout(function () {
       dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
-      recallfunction();
     }, 20000);
   };
   const onSelectChange = (newSelectedRowKeys) => {
@@ -237,6 +227,11 @@ const Product = () => {
       ),
     },
   ];
+  useEffect(() => {
+    setTimeout(function () {
+      dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
+    }, 120000);
+  }, [products]);
   return (
     <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10 ">
       {contextHolder}
@@ -255,9 +250,6 @@ const Product = () => {
               x: 1400,
             }}
           />
-          {loadstate !== 0 && (
-            <Progress percent={(products.length / fileLength) * 100} />
-          )}
           {console.log(loadstate, fileLength)}
         </div>
       </div>
@@ -316,7 +308,11 @@ const Product = () => {
                     </div>
                   )}
                 </div>
-                <Button className="primary w-full mt-5" onClick={onFileUpload}>
+                <Button
+                  disabled={!file}
+                  className="primary w-full mt-5"
+                  onClick={onFileUpload}
+                >
                   送信
                 </Button>
                 <Divider />

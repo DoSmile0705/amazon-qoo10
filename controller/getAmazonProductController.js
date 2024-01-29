@@ -8,6 +8,8 @@ const XLSX = require("xlsx");
 const { updatePrice, UpdateMydbOfQoo10 } = require("./qoo10ProductManage");
 const AddPrice = require("../models/AddPrice");
 const loadstate = require("../models/loadstate");
+const _ = require("lodash");
+const price = require("../models/price");
 
 require("dotenv").config({
   path: `../`,
@@ -57,52 +59,7 @@ const getAmazonProduct = async (asin) => {
         ASIN: asin,
       },
     });
-    // let category = await spClient.callAPI({
-    //   operation: "listCatalogCategories",
-    //   endpoint: "catalogItems",
-    //   query: {
-    //     MarketplaceId: "A1VC38T7YXB528",
-    //     ASIN: asin,
-    //   },
-    // });
-    // try {
-    //   let res = await spClient.callAPI({
-    //     operation: "getCompetitivePricing",
-    //     endpoint: "productPricing",
-    //     query: {
-    //       Asins: ["B0C553P2PC", "B09J2VGCY3"],
-    //       ItemType: "Asin",
-    //       MarketplaceId: "A1VC38T7YXB528",
-    //     },
-    //     options: {
-    //       version: "v0",
-    //       raw_result: true,
-    //       timeouts: {
-    //         response: 5000,
-    //         idle: 10000,
-    //         deadline: 30000,
-    //       },
-    //     },
-    //   });
-    // } catch (err) {
-    //   if (err.code) {
-    //     if (err.code === "API_RESPONSE_TIMEOUT")
-    //       console.log(
-    //         "SP-API ERROR: response timeout: " + err.timeout + "ms exceeded.",
-    //         err.message
-    //       );
-    //     if (err.code === "API_IDLE_TIMEOUT")
-    //       console.log(
-    //         "SP-API ERROR: idle timeout: " + err.timeout + "ms exceeded.",
-    //         err.message
-    //       );
-    //     if (err.code === "API_DEADLINE_TIMEOUT")
-    //       console.log(
-    //         "SP-API ERROR: deadline timeout: " + err.timeout + "ms exceeded.",
-    //         err.message
-    //       );
-    //   }
-    // }
+
     let catalog_item = await spClient.callAPI({
       operation: "getCatalogItem",
       endpoint: "catalogItems",
@@ -128,10 +85,18 @@ const getAmazonProduct = async (asin) => {
     console.error("ddd", error);
   }
 };
-// getAmazonProduct("B0BTBKZY5L");
 const addProductToMydbBasic = async (asin, userId) => {
   const catalog_item = await getAmazonProduct(asin);
+  let list_price = 0;
+  let prices = await price.find({ userId: userId, ASIN: asin });
+
   if (catalog_item && catalog_item.images[0].images.length) {
+    list_price =
+      prices.length &&
+      prices[0].Product?.CompetitivePricing.CompetitivePrices[0]?.Price
+        .LandedPrice.Amount;
+    //      ||
+    // catalog_item.attributes.list_price[0].value;
     let product = await Product.findOne({
       asin: asin,
       userId: userId,
@@ -158,9 +123,7 @@ const addProductToMydbBasic = async (asin, userId) => {
         description: catalog_item.attributes.product_description
           ? catalog_item.attributes.product_description[0].value
           : bullet_point,
-        price: catalog_item.attributes.list_price
-          ? catalog_item.attributes.list_price[0].value
-          : 0,
+        price: list_price,
         qoo10_price: null,
         predictableIncome: null,
         bullet_point: catalog_item.attributes.bullet_point
@@ -206,6 +169,75 @@ const addProductToMydb = async (req, res) => {
     res.json({ product: product, message: "商品登録成功" });
   } catch (error) {
     res.status(500).json({ message: error });
+  }
+};
+const definePrice = async (asins, userID) => {
+  try {
+    // Get Access Token
+    const accessToken = await getAccessToken();
+    // Make request to Amazon SP API
+    const spClient = new SellingPartner({
+      region: "fe",
+      refresh_token: process.env.REFRESH_TOKEN,
+      access_token: accessToken,
+      credentials: {
+        SELLING_PARTNER_APP_CLIENT_ID: process.env.CLIENT_ID,
+        SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
+      },
+    });
+    try {
+      let res = await spClient.callAPI({
+        operation: "getCompetitivePricing",
+        endpoint: "productPricing",
+        query: {
+          Asins: asins,
+          ItemType: "Asin",
+          MarketplaceId: "A1VC38T7YXB528",
+        },
+        options: {
+          version: "v0",
+          raw_result: true,
+          timeouts: {
+            response: 5000,
+            idle: 10000,
+            deadline: 30000,
+          },
+        },
+      });
+      const data = JSON.parse(res.body);
+
+      const prices = data.payload.map((ele, index) => {
+        return {
+          ...ele,
+          ASIN: ele.ASIN,
+          userId: userID,
+        };
+      });
+
+      await price.insertMany(prices).catch((err) => {
+        console.log(err);
+      });
+    } catch (err) {
+      if (err.code) {
+        if (err.code === "API_RESPONSE_TIMEOUT")
+          console.log(
+            "SP-API ERROR: response timeout: " + err.timeout + "ms exceeded.",
+            err.message
+          );
+        if (err.code === "API_IDLE_TIMEOUT")
+          console.log(
+            "SP-API ERROR: idle timeout: " + err.timeout + "ms exceeded.",
+            err.message
+          );
+        if (err.code === "API_DEADLINE_TIMEOUT")
+          console.log(
+            "SP-API ERROR: deadline timeout: " + err.timeout + "ms exceeded.",
+            err.message
+          );
+      }
+    }
+  } catch (error) {
+    console.error("ddd", error);
   }
 };
 const getAllProductOfMydb = async (req, res) => {
@@ -328,16 +360,27 @@ const asinfileUpload = async (req, res) => {
       { length: jsonData.length + basicData.length }
     );
   }
+
   jsonData.map(async (row, index) => {
+    if (jsonData.length < 20 && index == jsonData.length) {
+      await definePrice(jsonData, req.body.userId);
+      console.log("20 less", index + 1);
+    } else if ((index + 1) % 20 == 0 && index != 0) {
+      await definePrice(jsonData.slice(index - 19, index), req.body.userId);
+      console.log("20", index + 1);
+    } else if (jsonData.length > 20 && index + 1 == jsonData.length) {
+      await definePrice(jsonData.slice(index - 19, index), req.body.userId);
+      console.log("20 more", index + 1);
+    }
+
+    await addProductToMydbBasic(row[0], req.body.userId);
     if (index == 2) {
       const data = await Product.find({ userId: req.body.userId });
-
       res.json({
         data,
         totalLength: jsonData.length,
       });
     }
-    await addProductToMydbBasic(row[0], req.body.userId);
   });
 };
 
