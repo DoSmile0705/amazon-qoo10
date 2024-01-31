@@ -4,20 +4,20 @@ import { BASE_URL } from "../../constant";
 
 export const getAllProducts = createAsyncThunk(
   "product/getAllProducts",
-  async (userId, thunkAPI) => {
+  async (userId, length, thunkAPI) => {
     let {
       data: { products },
     } = await axios.get(`/api/products/`, {
-      params: { userId: userId },
+      params: { userId: userId, length: length },
     });
     return products;
   }
 );
+
 export const addProductByFile = createAsyncThunk(
   "product/addProductByFile",
   async (data, thunkAPI) => {
     const response = await axios.post(`/api/products/upload`, data);
-    console.log(response.data);
     return response.data;
   }
 );
@@ -42,7 +42,6 @@ export const exhibitProducts = createAsyncThunk(
   "product/exhibitProducts",
   async (products, thunkAPI) => {
     const res = await axios.post(`/api/qoo10/exhibit`, products);
-    console.log(res);
     return res.data;
   }
 );
@@ -73,6 +72,9 @@ const productSlice = createSlice({
     income: [],
     qoo10categories: [],
     successMsg: "",
+    fileLength: 0,
+    loadstate: 0,
+    // each call +1, 2:end maininfo load, 4:ended price load, 6:ended category load
   },
   reducers: {
     getProducts: (state, action) => {
@@ -84,104 +86,6 @@ const productSlice = createSlice({
       state.error = true;
       state.errMsg = action.payload.err;
     },
-
-    getFilters: (state, action) => {
-      // GET LIST OF ALL COLORS FROM PRODUCTS
-      state.colors = Array.from(
-        new Set(
-          state.colors.concat.apply(
-            [],
-            (state.filteredProducts.length > 0
-              ? state.filteredProducts
-              : state.products
-            ).map((item) => item.categories.at(-1).color)
-          )
-        )
-      ).sort();
-      // GET LIST OF ALL BRANDS/COMPANIES FROM PRODUCTS
-      state.brands = Array.from(
-        new Set(
-          state.brands.concat.apply(
-            [],
-            (state.filteredProducts.length > 0
-              ? state.filteredProducts
-              : state.products
-            ).map((item) => item.company)
-          )
-        )
-      ).sort();
-    },
-    selectFilters: (state, action) => {
-      state.filter = action.payload.filter;
-
-      // return an array of true and false based on if the product contains a filter
-      if (state.filter.color === "" && state.filter.company === "") {
-        state.containFilters = (
-          state.filteredProducts.length < 1
-            ? state.products
-            : state.filteredProducts
-        ).map((item) => true);
-      } else if (state.filter.company !== "" && state.filter.color === "") {
-        state.containFilters = (
-          state.filteredProducts.length < 1
-            ? state.products
-            : state.filteredProducts
-        ).map((item) =>
-          Object.entries(state.filter).every(([key, value]) =>
-            item.company.includes(value)
-          )
-        );
-      } else {
-        state.containFilters = (
-          state.filteredProducts.length < 1
-            ? state.products
-            : state.filteredProducts
-        ).map((item) =>
-          Object.entries(state.filter).every(([key, value]) =>
-            (item.categories.at(-1)[key] || item[key]).includes(value)
-          )
-        );
-      }
-    },
-    selectSort: (state, action) => {
-      state.sort = action.payload.sort;
-      let items =
-        state.filteredProducts.length < 1
-          ? state.products
-          : state.filteredProducts;
-
-      switch (action.payload.sort) {
-        case "newest":
-          items = (
-            state.filteredProducts.length < 1
-              ? state.products
-              : state.filteredProducts
-          ).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-          break;
-        case "asc":
-          items = (
-            state.filteredProducts.length < 1
-              ? state.products
-              : state.filteredProducts
-          ).sort((a, b) => a.discountPrice - b.discountPrice);
-          break;
-        case "desc":
-          items = (
-            state.filteredProducts.length < 1
-              ? state.products
-              : state.filteredProducts
-          ).sort((a, b) => b.discountPrice - a.discountPrice);
-          break;
-        default:
-          // eslint-disable-next-line
-          items = (
-            state.filteredProducts.length < 1
-              ? state.products
-              : state.filteredProducts
-          ).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-          break;
-      }
-    },
   },
   extraReducers: {
     [getAllProducts.pending]: (state) => {
@@ -189,9 +93,30 @@ const productSlice = createSlice({
       state.successMsg = "";
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
-      state.loading = false;
-      state.products = payload;
-      state.containFilters = state.products.map((item) => true);
+      if (state.products.length == 0) {
+        state.products = payload;
+      } else {
+        state.products.push(...payload.splice(state.products.length));
+      }
+      if (payload.length == 0 && state.fileLength == 0) {
+        state.loading = false;
+      }
+      if (
+        payload.length == 0 &&
+        state.products.length > state.fileLength / 50
+      ) {
+        state.loadstate = state.loadstate + 1;
+      }
+      if (payload.length && state.fileLength > 0) {
+        state.loadstate = 0;
+      }
+      if (payload.length && state.fileLength == 0) {
+        state.loading = false;
+      }
+      if (state.loadstate == 5) {
+        state.fileLength = 0;
+        state.loading = false;
+      }
     },
     [getAllProducts.rejected]: (state, action) => {
       state.loading = false;
@@ -199,24 +124,25 @@ const productSlice = createSlice({
       state.errMsg = action.error.message;
     },
     [getQoo10Category.pending]: (state, action) => {
-      state.loading = true;
+      state.uploading = true;
     },
     [getQoo10Category.fulfilled]: (state, { payload }) => {
-      state.loading = false;
+      state.uploading = false;
       state.qoo10categories = payload;
     },
     [getQoo10Category.rejected]: (state, action) => {
-      state.loading = false;
+      state.uploading = false;
       state.error = true;
       state.errMsg = action.error.message;
     },
     [addProductByFile.pending]: (state) => {
       state.loading = true;
       state.uploading = true;
+      state.fileLength = 0;
     },
-    [addProductByFile.fulfilled]: (state) => {
-      state.loading = false;
-      state.uploading = false;
+    [addProductByFile.fulfilled]: (state, { payload }) => {
+      state.products = payload.data;
+      state.fileLength = state.products.length + payload.totalLength;
     },
     [addProductByFile.rejected]: (state) => {
       state.loading = false;
@@ -228,16 +154,17 @@ const productSlice = createSlice({
     [addProduct.fulfilled]: (state, { payload }) => {
       state.loading = false;
       // payload values
-      state.products.push(payload.product);
-      state.title = payload.product.title;
-      state.images = payload.product.img;
-      state.description = payload.product.description;
-      state.price = payload.product.price;
-      state.income = payload.product.income;
-      state.successMsg = payload.message;
+      if (payload.product) {
+        state.products.push(payload.product);
+        state.title = payload.product.title;
+        state.images = payload.product.img;
+        state.description = payload.product.description;
+        state.price = payload.product.price;
+        state.income = payload.product.income;
+        state.successMsg = payload.message;
+      }
     },
     [addProduct.rejected]: (state, action) => {
-      state.loading = false;
       state.error = true;
       state.errMsg = action.error.message;
     },
@@ -264,14 +191,15 @@ const productSlice = createSlice({
     },
     [deleteProduct.fulfilled]: (state, { payload }) => {
       state.loading = false;
-      console.log(payload);
       state.products = state.products.filter((product) => {
         return product._id !== payload._id;
       });
-      // state.successMsg = payload.message;
     },
-    [deleteProduct.rejected]: (state) => {
+    [deleteProduct.rejected]: (state, { payload }) => {
       state.loading = false;
+      state.products = state.products.filter((product) => {
+        return product._id !== payload;
+      });
     },
     [exhibitProducts.pending]: (state) => {
       state.loading = true;
@@ -280,17 +208,16 @@ const productSlice = createSlice({
     [exhibitProducts.fulfilled]: (state, { payload }) => {
       state.pro_error = false;
       state.loading = false;
-      state.error = true;
-      payload.products[0].map((pro, index) => {
-        console.log(pro);
+      state.error = false;
+      payload.products?.map((pro, index) => {
         state.products.map((product, index) => {
-          if (product._id === pro._id) {
-            state.products[index] = pro;
+          if (product._id === pro[0]._id && pro.status == "added") {
+            state.products[index] = pro[0];
+          } else if (product._id === pro[0]._id && pro.status == "failed") {
+            state.products.splice(index, 1);
           }
         });
       });
-
-      console.log(payload);
     },
     [exhibitProducts.rejected]: (state, action) => {
       state.loading = false;

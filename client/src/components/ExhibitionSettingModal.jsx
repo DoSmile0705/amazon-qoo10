@@ -9,6 +9,8 @@ import { Button } from "antd";
 const ExhibitionSettingModal = (props) => {
   const [passedProducts, setPassedProduct] = useState();
   const [exceptedProducts, setExceptedProduct] = useState();
+  const [checkedKeys, setCheckedKeys] = useState();
+  const [exceptedKeys, setExceptedKeys] = useState();
 
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
@@ -21,16 +23,23 @@ const ExhibitionSettingModal = (props) => {
 
   const exhibit_Products = async (event) => {
     dispatch(
-      exhibitProducts({ passedProducts: passedProducts, userId: userInfo._id })
+      exhibitProducts({
+        checkedKeys: checkedKeys,
+        exceptedKeys: exceptedKeys,
+        userId: userInfo._id,
+      })
     );
     props.onClick();
+    console.log(checkedKeys, exceptedKeys);
   };
   const ngCheck = () => {
     let checkProducts = [];
     let excepted_Products = [];
+    let checkedkeys = [];
+    let exceptedkeys = [];
 
     props.checkedItems.map((key) => {
-      const product = productData[key - 1];
+      const product = productData[key];
       let title = product.title.toLowerCase();
       let Cbullet_point = "";
       product.bullet_point.map((bull) => {
@@ -96,10 +105,14 @@ const ExhibitionSettingModal = (props) => {
           description: description || product.description,
           status: "出品済み",
         });
+        checkedkeys.push(key);
       } else if (isexcept) {
+        exceptedkeys.push(key);
         excepted_Products.push(product);
       }
     });
+    setCheckedKeys(checkedkeys);
+    setExceptedKeys(exceptedkeys);
     setPassedProduct(checkProducts);
     setExceptedProduct(excepted_Products);
   };
@@ -107,7 +120,7 @@ const ExhibitionSettingModal = (props) => {
     dispatch(getAllNgDatas(userInfo._id));
   }, []);
   return (
-    <div className="w-[80%] h-[95vh]  py-3 bg-white">
+    <div className="w-[80%] h-auto  py-3 bg-white">
       <div className="flex justify-end pt-3 pr-5">
         <a onClick={props.onClick}>
           <CloseCircleOutlined className="text-[30px] cursor-pointer" />
@@ -120,12 +133,12 @@ const ExhibitionSettingModal = (props) => {
         <div className="w-[90%] mx-auto my-5">
           <div className="products-temple">
             <label className="check-kind">追加された製品</label>
-            <div className="products-list flex gap-x-5 mt-1 justify-start">
+            <div className="products-list flex gap-x-5 mt-3 justify-start">
               {props.checkedItems.map((key) => {
                 return (
                   <div key={key} className="product-item">
-                    <img src={productData[key - 1].img[0].link}></img>
-                    <label>{productData[key - 1].title}</label>
+                    <img src={productData[key].img[0].link}></img>
+                    <label>{productData[key].title}</label>
                   </div>
                 );
               }) || "内容なし"}

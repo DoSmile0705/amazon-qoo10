@@ -2,13 +2,23 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const NgData = require("../models/NgData");
+const XLSX = require("xlsx");
+const workbook = XLSX.readFile("./ngword.xlsx");
 
 app.use(bodyParser.json());
 
 const addNgData = async (req, res) => {
   const reqData = req.body;
   console.log("just here", reqData);
-
+  const isNgdata = await NgData.find({
+    _id: reqData.userId,
+  });
+  if (!isNgdata.length) {
+    const ngdata = new NgData({
+      _id: reqData.userId,
+    });
+    await ngdata.save();
+  }
   const is_exist_ngword = await NgData.find({
     _id: reqData.userId,
     "ngword.value": reqData.ngword?.value,
@@ -52,7 +62,9 @@ const addNgData = async (req, res) => {
 
 const getAllNgData = async (req, res) => {
   NgData.find({ _id: req.params.id })
-    .then((ngdata) => res.json({ ngdata }))
+    .then((ngdata) => {
+      res.json({ ngdata });
+    })
     .catch((err) => res.status(404).json({ nopostfound: "No ngdata found" }));
 };
 

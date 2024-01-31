@@ -160,13 +160,14 @@ a {
 }
 
 .product-item img {
-  min-width: 100%;
+  width: 5rem;
+  height: 5rem;
 }
 
 .product-item {
   width: 117px;
   min-width: 117px;
-  height: 148px;
+  height: 7rem;
   border: 1px solid #ccc;
   border-radius: 3px;
   transition: 0.3s;
@@ -189,7 +190,7 @@ a {
   margin-left: 20px;
   margin-right: 20px;
   margin-bottom: 10px;
-  height: 220px;
+  height: 11rem;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border: 1px solid rgb(230, 218, 218);
   padding: 10px;
@@ -219,10 +220,22 @@ a {
 dl div {
   border-color: rgb(209, 206, 206) !important;
 }
-
+.ant-upload-list-text {
+  margin-left: 5px !important;
+  display: flex !important;
+  align-items: center !important;
+}
 @media only screen and (max-width: 1200px) {
   .main-table {
     max-width: 60vw !important;
+  }
+}
+@media only screen and (max-width: 1141px) {
+  .main-table {
+    max-width: 60vw !important;
+  }
+  .gutter-row:first-child {
+    width: 100%;
   }
 }
 @media only screen and (max-width: 1024px) {

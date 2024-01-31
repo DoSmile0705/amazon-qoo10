@@ -17,7 +17,6 @@ import ExhibitSetting from "../pages/Exhibit-setting";
 
 const MyRoutes = () => {
   const { userInfo, paymentStatus } = useSelector((state) => state.auth);
-  console.log(paymentStatus);
   return (
     <>
       <Layout>

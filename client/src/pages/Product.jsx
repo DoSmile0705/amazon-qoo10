@@ -19,34 +19,42 @@ import {
   message,
   Upload,
   Divider,
+  Progress,
 } from "antd";
 
 const Product = () => {
   const dispatch = useDispatch();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [checkedItems, setCheckedItems] = useState({});
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 10,
+    },
+  });
   const [newItems, setNewItems] = useState([]);
   const [file, setFile] = useState(null);
-  const [isnew, setIsnew] = useState(false);
   const [asin, setAsin] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const { products, loading, successMsg, uploading } = useSelector(
-    (state) => state.product
-  );
+  const { products, loading, fileLength, successMsg, uploading, loadstate } =
+    useSelector((state) => state.product);
   const { userInfo } = useSelector((state) => state.auth);
   const [table_products, SetTable_products] = useState(products || []);
   const [error_Msg, SetError_Msg] = useState(null);
 
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-  const onShowSizeChange = (current, pageSize) => {
-    console.log(current, pageSize);
-    setPageSize(pageSize);
-    setCurrentPage(current);
-    console.log(current, pageSize);
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters,
+      ...sorter,
+    });
+
+    // `dataSource` is useless since `pageSize` changed
+    if (pagination.pageSize !== tableParams.pagination?.pageSize) {
+      setData([]);
+    }
   };
   const success = () => {
     messageApi.open({
@@ -70,17 +78,11 @@ const Product = () => {
     }
   }, [successMsg, error_Msg]);
   useEffect(() => {
-    const slice_products = products.slice(
-      (currentPage - 1) * pageSize,
-      currentPage * pageSize
-    );
-    SetTable_products(
-      //
-      slice_products.map((product, index) => {
-        return { ...product, key: index + 1 };
-      })
-    );
-  }, [loading, uploading, pageSize, currentPage]);
+    const keyProducts = products.map((product, index) => {
+      return { ...product, key: index };
+    });
+    SetTable_products(keyProducts);
+  }, [loading, uploading, products]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -110,21 +112,12 @@ const Product = () => {
 
   const exhibitionSettingClick = () => {
     const data = selectedRowKeys.filter((key) => {
-      return (
-        products[key - 1].status === "新規追加" &&
-        products[key - 1].qoo10_price !== 0 &&
-        products[key - 1].odds_amount !== 0 &&
-        products[key - 1].transport_fee !== 0 &&
-        products[key - 1].bene_rate !== 0 &&
-        products[key - 1].SecondSubCat !== null
-      );
+      return products[key].status === "新規追加";
     });
     if (data.length) {
       setShowExhibitionModal(true);
     } else {
-      SetError_Msg(
-        "出品する商品がございません。入力ステータスを確認してください"
-      );
+      SetError_Msg("出品する商品がございません。");
     }
     setNewItems(data);
   };
@@ -137,8 +130,8 @@ const Product = () => {
     formData.append("file", file);
     formData.append("userId", userInfo._id);
     dispatch(addProductByFile(formData));
-    setTimeout(() => {
-      dispatch(getAllProducts);
+    setTimeout(function () {
+      dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
     }, 40000);
   };
   const onSelectChange = (newSelectedRowKeys) => {
@@ -164,7 +157,7 @@ const Product = () => {
       width: 120,
       dataIndex: "title",
       key: "_id",
-      render: (title) => <label>{title.slice(0, 18)}...</label>,
+      render: (title) => <label>{title?.slice(0, 18)}...</label>,
     },
     {
       title: "購入価格(円)",
@@ -185,18 +178,6 @@ const Product = () => {
       key: "_id",
     },
     {
-      title: "状 態",
-      width: 80,
-      dataIndex: "status",
-      key: "_id",
-    },
-    {
-      title: "amazon商品数量",
-      width: 90,
-      dataIndex: "quantity",
-      key: "_id",
-    },
-    {
       title: "販売数量",
       width: 60,
       dataIndex: "selledQuantity",
@@ -206,6 +187,12 @@ const Product = () => {
       title: "出品数量",
       width: 60,
       dataIndex: "qoo10_quantity",
+      key: "_id",
+    },
+    {
+      title: "状 態",
+      width: 80,
+      dataIndex: "status",
       key: "_id",
       fixed: "right",
     },
@@ -217,12 +204,14 @@ const Product = () => {
       render: (_, record) => (
         <>
           <Button
-            onClick={() => handleEditClick(record.key - 1)}
-            className="primary "
+            disabled={loading}
+            onClick={() => handleEditClick(record.key)}
+            className="primary mr-3"
           >
             変 更
           </Button>
           <Button
+            disabled={loading}
             onClick={() => dispatch(deleteProduct(record))}
             type="primary "
             className="danger"
@@ -233,6 +222,14 @@ const Product = () => {
       ),
     },
   ];
+  useEffect(() => {
+    if (loadstate < 2 && fileLength != 0)
+      setTimeout(function () {
+        dispatch(
+          getAllProducts(localStorage.getItem("userId"), products.length)
+        );
+      }, 120000);
+  }, [products]);
   return (
     <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10 ">
       {contextHolder}
@@ -244,23 +241,13 @@ const Product = () => {
             className="max-w-[65vw] main-table mx-auto mt-10 max-h-[80vh]"
             rowSelection={rowSelection}
             dataSource={table_products}
-            pagination={false}
+            pagination={tableParams.pagination}
+            onChange={handleTableChange}
             scroll={{
               y: 500,
               x: 1400,
             }}
           />
-
-          <div className="sticky bottom-3 right-5 z-10">
-            <Pagination
-              className="flex justify-end items-end mb-5 mr-5 mt-2"
-              onChange={onShowSizeChange}
-              showSizeChanger
-              onShowSizeChange={onShowSizeChange}
-              defaultCurrent={1}
-              total={products.length}
-            />
-          </div>
         </div>
       </div>
       <div className=" flex flex-col justify-between card h-full py-5 ">
@@ -288,6 +275,7 @@ const Product = () => {
                   placeholder="ASINコード入力"
                 />
                 <Button
+                  disabled={loading}
                   className="primary h-[40px] w-full tracking-widest mb-2"
                   htmlType="submit"
                 >
@@ -304,6 +292,7 @@ const Product = () => {
                     className="w-full flex"
                   >
                     <Button
+                      disabled={loading}
                       className=" w-full h-auto"
                       icon={<UploadOutlined />}
                     >
@@ -318,7 +307,11 @@ const Product = () => {
                     </div>
                   )}
                 </div>
-                <Button className="primary w-full mt-5" onClick={onFileUpload}>
+                <Button
+                  disabled={!file || loading}
+                  className="primary w-full mt-5"
+                  onClick={onFileUpload}
+                >
                   送信
                 </Button>
                 <Divider />
@@ -334,6 +327,7 @@ const Product = () => {
             </label>
 
             <Button
+              disabled={loading}
               onClick={exhibitionSettingClick}
               className="primary h-[40px] w-full tracking-widest mt-8 mb-2"
             >
