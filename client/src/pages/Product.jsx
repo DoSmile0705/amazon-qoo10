@@ -38,9 +38,8 @@ const Product = () => {
   const [showModal, setShowModal] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const { products, loading, successMsg, uploading } = useSelector(
-    (state) => state.product
-  );
+  const { products, loading, fileLength, successMsg, uploading, loadstate } =
+    useSelector((state) => state.product);
   const { userInfo } = useSelector((state) => state.auth);
   const [table_products, SetTable_products] = useState(products || []);
   const [error_Msg, SetError_Msg] = useState(null);
@@ -224,9 +223,12 @@ const Product = () => {
     },
   ];
   useEffect(() => {
-    setTimeout(function () {
-      dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
-    }, 120000);
+    if (loadstate < 2 && fileLength != 0)
+      setTimeout(function () {
+        dispatch(
+          getAllProducts(localStorage.getItem("userId"), products.length)
+        );
+      }, 120000);
   }, [products]);
   return (
     <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10 ">
