@@ -8,8 +8,6 @@ export const getAllNgDatas = createAsyncThunk(
     const {
       data: { ngdata },
     } = await axios.get(`/api/ngdata/${userId}`);
-    console.log(ngdata);
-
     return ngdata;
   }
 );

@@ -120,7 +120,7 @@ const ExhibitionSettingModal = (props) => {
     dispatch(getAllNgDatas(userInfo._id));
   }, []);
   return (
-    <div className="w-[80%] h-[95vh]  py-3 bg-white">
+    <div className="w-[80%] h-auto  py-3 bg-white">
       <div className="flex justify-end pt-3 pr-5">
         <a onClick={props.onClick}>
           <CloseCircleOutlined className="text-[30px] cursor-pointer" />
@@ -133,7 +133,7 @@ const ExhibitionSettingModal = (props) => {
         <div className="w-[90%] mx-auto my-5">
           <div className="products-temple">
             <label className="check-kind">追加された製品</label>
-            <div className="products-list flex gap-x-5 mt-1 justify-start">
+            <div className="products-list flex gap-x-5 mt-3 justify-start">
               {props.checkedItems.map((key) => {
                 return (
                   <div key={key} className="product-item">

@@ -18,7 +18,6 @@ export const addProductByFile = createAsyncThunk(
   "product/addProductByFile",
   async (data, thunkAPI) => {
     const response = await axios.post(`/api/products/upload`, data);
-    console.log(response.data);
     return response.data;
   }
 );
@@ -26,7 +25,6 @@ export const addProduct = createAsyncThunk(
   "product/addProduct",
   async (data, thunkAPI) => {
     const response = await axios.post(`/api/products/add`, data);
-    console.log(response);
     return response.data;
   }
 );
@@ -44,8 +42,6 @@ export const exhibitProducts = createAsyncThunk(
   "product/exhibitProducts",
   async (products, thunkAPI) => {
     const res = await axios.post(`/api/qoo10/exhibit`, products);
-    console.log(res);
-
     return res.data;
   }
 );
@@ -195,17 +191,14 @@ const productSlice = createSlice({
       state.successMsg = "";
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
-      if (state.loadstate == 0 || state.loadstate == 6) state.loading = false;
       if (state.products.length == 0) {
         state.products = payload;
       } else {
         state.products.push(...payload.splice(state.products.length));
       }
-      if (state.products.length == payload.length) {
-        state.loadstate = state.loadstate + 1;
+      if (state.products.length == payload.length || payload.length == 0) {
         state.loading = false;
       }
-      state.containFilters = state.products.map((item) => true);
     },
     [getAllProducts.rejected]: (state, action) => {
       state.loading = false;
@@ -213,14 +206,14 @@ const productSlice = createSlice({
       state.errMsg = action.error.message;
     },
     [getQoo10Category.pending]: (state, action) => {
-      state.loading = true;
+      state.uploading = true;
     },
     [getQoo10Category.fulfilled]: (state, { payload }) => {
-      state.loading = false;
+      state.uploading = false;
       state.qoo10categories = payload;
     },
     [getQoo10Category.rejected]: (state, action) => {
-      state.loading = false;
+      state.uploading = false;
       state.error = true;
       state.errMsg = action.error.message;
     },
@@ -230,7 +223,6 @@ const productSlice = createSlice({
       state.fileLength = 0;
     },
     [addProductByFile.fulfilled]: (state, { payload }) => {
-      console.log(payload);
       state.products = payload.data;
       state.fileLength = payload.totalLength;
     },
@@ -255,7 +247,6 @@ const productSlice = createSlice({
       }
     },
     [addProduct.rejected]: (state, action) => {
-      state.loading = false;
       state.error = true;
       state.errMsg = action.error.message;
     },
@@ -282,38 +273,33 @@ const productSlice = createSlice({
     },
     [deleteProduct.fulfilled]: (state, { payload }) => {
       state.loading = false;
-      console.log(payload);
       state.products = state.products.filter((product) => {
         return product._id !== payload._id;
       });
-      // state.successMsg = payload.message;
     },
-    [deleteProduct.rejected]: (state) => {
+    [deleteProduct.rejected]: (state, { payload }) => {
       state.loading = false;
+      state.products = state.products.filter((product) => {
+        return product._id !== payload;
+      });
     },
     [exhibitProducts.pending]: (state) => {
       state.loading = true;
       state.pro_error = false;
     },
     [exhibitProducts.fulfilled]: (state, { payload }) => {
-      console.log(payload);
       state.pro_error = false;
       state.loading = false;
       state.error = false;
       payload.products?.map((pro, index) => {
-        console.log(pro.status, pro[0]._id);
         state.products.map((product, index) => {
           if (product._id === pro[0]._id && pro.status == "added") {
             state.products[index] = pro[0];
+          } else if (product._id === pro[0]._id && pro.status == "failed") {
+            state.products.splice(index, 1);
           }
         });
-        if (pro.status == "failed") {
-          console.log("hey");
-          state.products.splice(index, 1);
-        }
       });
-
-      console.log(payload);
     },
     [exhibitProducts.rejected]: (state, action) => {
       state.loading = false;

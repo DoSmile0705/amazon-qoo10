@@ -20,6 +20,7 @@ const createCategory = async () => {
     const documents = good.map((row, index) => {
       return {
         subCategory: row[4],
+        middleCategoryName: row[5],
         subCategoryName: row[1] + row[3] + row[5],
       };
     });
@@ -107,22 +108,29 @@ const setNewGoods = async (req, res) => {
       return dbProducts[key];
     });
     let sentProducts = [];
-    let deletedProducts = [];
     // console.log(addprice, transfee, subquantity);
     for (i = 0; i < products.length; i++) {
       const good = products[i];
       let qoo10category = "";
+      let qoo10categoryName = "";
       const subcategories = categories.filter((cat) => {
-        return cat.subCategoryName.includes(good.amaparentCat);
+        return (
+          cat.subCategoryName.includes(good.amaparentCat) ||
+          good.description.includes(good.amaparentCat)
+        );
       });
-      qoo10category = subcategories[0].subCategory;
-      subcategories.forEach((cat) => {
-        if (cat.subCategoryName.includes(good.amaCat))
-          qoo10category = cat.subCategory;
-        return;
-      });
+      qoo10category = subcategories[0]?.subCategory;
+      qoo10categoryName = subcategories[0]?.middleCategoryName;
+      if (subcategories.length)
+        subcategories.forEach((cat) => {
+          if (cat.subCategoryName.includes(good.amaCat)) {
+            qoo10category = cat.subCategory;
+            qoo10categoryName = cat.middleCategoryName;
+            return;
+          }
+        });
       console.log(qoo10category);
-      let shippingNo = transfee[0].transfee_4;
+      let shippingNo = transfee[0].transfee_1;
       if (good.package) {
         const size = good.package;
         const sum = size.height.value + size.width.value + size.length.value;
@@ -152,7 +160,10 @@ const setNewGoods = async (req, res) => {
       });
       let qoo10_price = good.price;
       if (prices.length) {
-        qoo10_price = prices[0].odds_amount + prices[0].bene_rate * good.price;
+        qoo10_price =
+          prices[0].odds_amount +
+          (prices[0].bene_rate * good.price) / 100 +
+          good.price;
       }
       // console.log(shippingNo, qoo10_price, subquantity[0].subquantity, prices);
       console.log(qoo10category, qoo10_price);
@@ -184,10 +195,10 @@ const setNewGoods = async (req, res) => {
           ItemDescription: good.description || "",
           ItemType: "",
           RetailPrice: "11" || "",
-          ItemPrice: qoo10_price,
+          ItemPrice: qoo10_price.toExponential(2),
           ItemQty: subquantity[0].subquantity || 20,
           ExpireDate: "",
-          ShippingNo: "",
+          ShippingNo: shippingNo,
           AvailableDateType: "0",
           AvailableDateValue: "1",
           Keyword: "",
@@ -201,12 +212,14 @@ const setNewGoods = async (req, res) => {
           { _id: good._id },
           {
             status: "出品済み",
-            qoo10_price: qoo10_price,
+            qoo10_price: qoo10_price.toExponential(2),
+            predictableIncome: qoo10_price.toExponential(2) - good.price,
             odds_amount: prices[0].odds_amount,
             bene_rate: prices[0].bene_rate,
             SecondSubCat: qoo10category,
             qoo10_quantity: subquantity[0].subquantity,
             ItemCode: qooResult.data.ResultObject.GdNo,
+            qoo10CategoryName: qoo10categoryName,
           }
         ).then(async () => {
           sentdata = await Product.find({ _id: good._id });
@@ -220,9 +233,19 @@ const setNewGoods = async (req, res) => {
       console.log("yaa1");
     }
     console.log("yaa2");
-    exceptedKeys.map((key) => {
-      deleteProductAndAddAsin(dbProducts[key]);
+
+    const exceptedProducts = exceptedKeys.map((key) => {
+      const product = dbProducts[key];
+      deleteProductAndAddAsin(product);
+      return product;
     });
+    for (i = 0; i < exceptedProducts.length; i++) {
+      sentProducts.push({
+        ...[{ _id: exceptedProducts[i]._id }],
+        status: "failed",
+      });
+    }
+    console.log(exceptedProducts, sentProducts);
     res.status(200).json({
       message: "qoo10に正確に出品されました。",
       products: sentProducts,
@@ -367,10 +390,10 @@ const deleteProductOfQoo10Mydb = async (req, res) => {
   // } else {
   await Product.findOneAndDelete({ _id: req.body._id })
     .then((product) => {
-      res.status(200).json(product);
+      res.status(200).json({ _id: req.body._id });
     })
     .catch((error) => {
-      res.status(404).json();
+      res.status(404).json({ _id: req.body._id });
     });
   // }
 };

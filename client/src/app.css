@@ -160,13 +160,14 @@ a {
 }
 
 .product-item img {
-  min-width: 100%;
+  width: 5rem;
+  height: 5rem;
 }
 
 .product-item {
   width: 117px;
   min-width: 117px;
-  height: 148px;
+  height: 7rem;
   border: 1px solid #ccc;
   border-radius: 3px;
   transition: 0.3s;
@@ -189,7 +190,7 @@ a {
   margin-left: 20px;
   margin-right: 20px;
   margin-bottom: 10px;
-  height: 220px;
+  height: 11rem;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   border: 1px solid rgb(230, 218, 218);
   padding: 10px;

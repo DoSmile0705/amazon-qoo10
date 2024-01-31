@@ -15,6 +15,7 @@ const SettingNG = () => {
   const [orwordOption, setOrwordOption] = useState({});
   let { check, ngdatas } = useSelector((state) => state.ng);
   let { userInfo } = useSelector((state) => state.auth);
+  const { loading } = useSelector((state) => state.product);
 
   useEffect(() => {
     dispatch(getAllNgDatas(userInfo._id));
@@ -43,6 +44,7 @@ const SettingNG = () => {
               userId: userInfo._id,
             });
           }}
+          disabled={loading}
           type="default"
         >
           変更
@@ -72,6 +74,7 @@ const SettingNG = () => {
           className="primary flex items-center"
           danger
           shape="round"
+          disabled={loading}
           onClick={() => {
             dispatch(
               deleteNgData({
@@ -290,6 +293,7 @@ const SettingNG = () => {
                         ? ngdatas[0].ngasin.map((word, index) => {
                             return (
                               <Popover
+                                key={index}
                                 content={content}
                                 onClick={() => {
                                   setOrwordOption({ ...word, kind: "ngasin" });
@@ -479,6 +483,7 @@ const SettingNG = () => {
             </div>
             <div>
               <Button
+                disabled={loading}
                 className="primary h-[40px] w-full mt-8 mb-2"
                 htmlType="submit"
               >

@@ -115,88 +115,98 @@ const EditModal = (props) => {
                   </div>
                 </div>
                 <div className="flex gap-1 justify-center items-center">
-                  <label className="text-[16px]">Asin</label>
-                  <span>{editedProduct.asin}</span>
+                  <span>{editedProduct.SecondSubCat}</span>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <div className=" my-1 w-[200px] ">
-                  <label
-                    htmlFor="title"
-                    className="block w-[100px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                  >
-                    商 品 規 格
-                  </label>
-                  <div className="card-2 p-1 gap-2 w-[200px]">
-                    <div>
+              <div>
+                <div className="flex gap-2">
+                  <div className=" my-1 w-[200px] ">
+                    <label
+                      htmlFor="title"
+                      className="block w-[100px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      商 品 規 格
+                    </label>
+                    <div className="card-2 p-1 gap-2 w-[200px]">
                       <div>
-                        <label>幅:</label>
-                        <span className="ml-1">
-                          {editedProduct?.package.width
-                            ? editedProduct?.package.width.value.toPrecision(
-                                3
-                              ) + "inches"
-                            : "未決定"}
-                        </span>
+                        <div>
+                          <label>幅:</label>
+                          <span className="ml-1">
+                            {editedProduct?.package.width
+                              ? editedProduct?.package.width.value.toPrecision(
+                                  3
+                                ) + "inches"
+                              : "未決定"}
+                          </span>
+                        </div>
+                        <div>
+                          <label>高さ:</label>
+                          <span className="ml-1">
+                            {editedProduct?.package.height
+                              ? editedProduct?.package.height.value.toPrecision(
+                                  3
+                                ) + "inches"
+                              : "未決定"}
+                          </span>
+                        </div>
                       </div>
                       <div>
-                        <label>高さ:</label>
-                        <span className="ml-1">
-                          {editedProduct?.package.height
-                            ? editedProduct?.package.height.value.toPrecision(
-                                3
-                              ) + "inches"
-                            : "未決定"}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div>
-                        <label>長さ:</label>
-                        <span className="ml-1">
-                          {editedProduct?.package.length
-                            ? editedProduct?.package.length.value.toPrecision(
-                                3
-                              ) + "inches"
-                            : "未決定"}
-                        </span>
-                      </div>
-                      <div>
-                        <label>重量:</label>
-                        <span className="ml-1">
-                          {editedProduct?.package.weight
-                            ? editedProduct?.package.weight.value.toPrecision(
-                                3
-                              ) + "pounds"
-                            : "未決定"}
-                        </span>
+                        <div>
+                          <label>長さ:</label>
+                          <span className="ml-1">
+                            {editedProduct?.package.length
+                              ? editedProduct?.package.length.value.toPrecision(
+                                  3
+                                ) + "inches"
+                              : "未決定"}
+                          </span>
+                        </div>
+                        <div>
+                          <label>重量:</label>
+                          <span className="ml-1">
+                            {editedProduct?.package.weight
+                              ? editedProduct?.package.weight.value.toPrecision(
+                                  3
+                                ) + "pounds"
+                              : "未決定"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className=" my-1 w-[100px] ">
-                  <label
-                    htmlFor="title"
-                    className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                  >
-                    購 入 価 格:
-                  </label>
-                  <div className="card-2 p-1 flex gap-2 w-[100px]">
-                    <span>{editedProduct?.price} ¥</span>
+                  <div className=" my-1 w-[100px] ">
+                    <label
+                      htmlFor="title"
+                      className="block mb-[8px] w-[100px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      購 入 価 格:
+                    </label>
+                    <div className="card-2 p-1 flex gap-2 w-[100px]">
+                      <span>{editedProduct?.price} ¥</span>
+                    </div>
+                  </div>
+                  <div className=" my-1 w-[100px] ">
+                    <label
+                      htmlFor="title"
+                      className="block w-[120px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
+                    >
+                      出品数量:
+                    </label>
+                    <div className="card-2 p-1 flex gap-2 w-[120px]">
+                      <span>
+                        {(editedProduct?.qoo10_quantity == null && "未決定") ||
+                          editedProduct?.qoo10_quantity}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className=" my-1 w-[100px] ">
-                  <label
-                    htmlFor="title"
-                    className="block w-[120px] mb-[8px] text-[16px] font-semibold text-gray-900 dark:text-white"
-                  >
-                    既定商品数量:
-                  </label>
-                  <div className="card-2 p-1 flex gap-2 w-[120px]">
-                    <span>
-                      {(editedProduct?.quantity == null && "未決定") ||
-                        editedProduct?.quantity}
-                    </span>
+
+                <div>
+                  <div className="flex pt-5 gap-1 justify-left items-center">
+                    {editedProduct.qoo10CategoryName && (
+                      <label className="text-[16px]">カテゴリー：</label>
+                    )}
+                    <span>{editedProduct.qoo10CategoryName}</span>
                   </div>
                 </div>
               </div>

@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
 const NgData = require("../models/NgData");
+const XLSX = require("xlsx");
+const workbook = XLSX.readFile("./ngword.xlsx");
 
 app.use(bodyParser.json());
 

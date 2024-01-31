@@ -5,6 +5,7 @@ import {
   Col,
   Divider,
   Form,
+  Select,
   InputNumber,
   Row,
   List,
@@ -37,6 +38,8 @@ const ExhibitSetting = () => {
   const [form] = Form.useForm();
   const [selectedAddPirce, setSelectedAddPirce] = useState(null);
   const { userInfo } = useSelector((state) => state.auth);
+  const { loading } = useSelector((state) => state.product);
+
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -62,20 +65,19 @@ const ExhibitSetting = () => {
     const result = await axios.post("api/exhibit/subquantity/", {
       selectedAddPirce,
       data,
+      userInfo,
     });
     setIsModalOpen(false);
     form.resetFields();
     getAddPrice();
   };
   const deleteAddPrice = async (data) => {
-    console.log(data);
     await axios.delete(`api/exhibit/addprice/${data._id}`);
     getAddPrice();
   };
   const gettransfee = async () => {
     const { data } = await axios.get(`api/exhibit/transfee/${userInfo._id}`);
     setTransfee(data.data[0]);
-    console.log(data);
   };
   const updatetransfee = async (data) => {
     await axios.post("api/exhibit/transfee/", {
@@ -83,7 +85,6 @@ const ExhibitSetting = () => {
       userInfo,
     });
     gettransfee();
-    console.log("hey");
   };
   const updateamout = async (payload) => {
     const { data } = await axios.post("api/exhibit/subquantity/", {
@@ -91,7 +92,6 @@ const ExhibitSetting = () => {
       userInfo,
     });
     getamount();
-    console.log("hey");
   };
   const columns = [
     {
@@ -116,6 +116,7 @@ const ExhibitSetting = () => {
       render: (index, text) => (
         <div>
           <Button
+            disabled={loading}
             onClick={() => {
               showModal();
               setIsAdd(false);
@@ -128,6 +129,7 @@ const ExhibitSetting = () => {
             変更
           </Button>
           <Button
+            disabled={loading}
             onClick={() => {
               deleteAddPrice(text);
             }}
@@ -140,6 +142,54 @@ const ExhibitSetting = () => {
       ),
     },
   ];
+  const shipping_options = [
+    {
+      value: "",
+      label: "無料",
+    },
+    {
+      value: "687807",
+      label: "50",
+    },
+    {
+      value: "687754",
+      label: "100",
+    },
+    {
+      value: "687808",
+      label: "150",
+    },
+    {
+      value: "687755",
+      label: "200",
+    },
+    {
+      value: "687810",
+      label: "250",
+    },
+    {
+      value: "687760",
+      label: "300",
+    },
+    {
+      value: "687811",
+      label: "350",
+    },
+    {
+      value: "687812",
+      label: "400",
+    },
+    {
+      value: "687813",
+      label: "450",
+    },
+  ];
+  const data = {
+    placeholder: "Search to Select",
+    optionFilterProp: "children",
+    filterOption: (input, option) => (option?.label ?? "").includes(input),
+    options: shipping_options,
+  };
   useEffect(() => {
     getAddPrice();
     gettransfee();
@@ -165,10 +215,15 @@ const ExhibitSetting = () => {
                     rules={[{ required: true, message: "" }]}
                     className="w-full pt-12"
                   >
+                    {" "}
                     {isEdit ? (
-                      <span>{transfee.transfee_1}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_1) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
                   <Form.Item
@@ -177,10 +232,15 @@ const ExhibitSetting = () => {
                     rules={[{ required: true, message: "" }]}
                     className="w-full"
                   >
+                    {" "}
                     {isEdit ? (
-                      <span>{transfee.transfee_2}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_2) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
 
@@ -191,9 +251,13 @@ const ExhibitSetting = () => {
                     className="w-full"
                   >
                     {isEdit ? (
-                      <span>{transfee.transfee_3}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_3) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
 
@@ -204,9 +268,13 @@ const ExhibitSetting = () => {
                     className="w-full"
                   >
                     {isEdit ? (
-                      <span>{transfee.transfee_4}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_4) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
                   <Form.Item
@@ -216,9 +284,13 @@ const ExhibitSetting = () => {
                     className="w-full"
                   >
                     {isEdit ? (
-                      <span>{transfee.transfee_5}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_5) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
                   <Form.Item
@@ -228,13 +300,18 @@ const ExhibitSetting = () => {
                     className="w-full"
                   >
                     {isEdit ? (
-                      <span>{transfee.transfee_6}</span>
+                      <span>
+                        {shipping_options.map((e) => {
+                          if (e.value == transfee.transfee_6) return e.label;
+                        })}
+                      </span>
                     ) : (
-                      <InputNumber min={0} className="w-full" />
+                      <Select {...data} showSearch />
                     )}
                   </Form.Item>
                   {!isEdit ? (
                     <Button
+                      disabled={loading}
                       onClick={() => {
                         setIsEdit(true);
                       }}
@@ -244,6 +321,7 @@ const ExhibitSetting = () => {
                     </Button>
                   ) : (
                     <Button
+                      disabled={loading}
                       htmlType="submit"
                       onClick={() => {
                         setIsEdit(false);
@@ -262,6 +340,7 @@ const ExhibitSetting = () => {
                   <div className="flex justify-between justify-center items-center">
                     <span className="py-3 text-xl">販売価格設定</span>
                     <Button
+                      disabled={loading}
                       type="primary"
                       className="primary"
                       onClick={showModal}
@@ -301,6 +380,7 @@ const ExhibitSetting = () => {
                     </Form.Item>
                     {!isEditAmout ? (
                       <Button
+                        disabled={loading}
                         onClick={() => {
                           setIsEditAmount(true);
                         }}
@@ -310,6 +390,7 @@ const ExhibitSetting = () => {
                       </Button>
                     ) : (
                       <Button
+                        disabled={loading}
                         htmlType="submit"
                         onClick={() => {
                           setIsEditAmount(false);
@@ -376,7 +457,11 @@ const ExhibitSetting = () => {
               />
             </Form.Item>
 
-            <Button htmlType="submit" className="w-[80%] mt-4 m-auto">
+            <Button
+              disabled={loading}
+              htmlType="submit"
+              className="w-[80%] mt-4 m-auto"
+            >
               {isAdd ? "保　管" : "変 更"}
             </Button>
           </Form>

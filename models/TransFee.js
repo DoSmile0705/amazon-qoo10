@@ -7,12 +7,12 @@ const TransFeeSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    transfee_1: { type: Number, default: 0 },
-    transfee_2: { type: Number, default: 0 },
-    transfee_3: { type: Number, default: 0 },
-    transfee_4: { type: Number, default: 0 },
-    transfee_5: { type: Number, default: 0 },
-    transfee_6: { type: Number, default: 0 },
+    transfee_1: { type: String, default: "" },
+    transfee_2: { type: String, default: "" },
+    transfee_3: { type: String, default: "" },
+    transfee_4: { type: String, default: "" },
+    transfee_5: { type: String, default: "" },
+    transfee_6: { type: String, default: "" },
   },
   { timestamps: true }
 );

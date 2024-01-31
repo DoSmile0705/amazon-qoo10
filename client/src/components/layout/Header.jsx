@@ -15,8 +15,9 @@ import { UserOutlined } from "@ant-design/icons";
 const Header = () => {
   const dispatch = useDispatch();
   const [current, setCurrent] = useState("product");
-  const { userInfo, loading } = useSelector((state) => state.auth);
+  const { userInfo } = useSelector((state) => state.auth);
   const { error, errMsg } = useSelector((state) => state.auth);
+  const { loading } = useSelector((state) => state.product);
   const [messageApi, contextHolder] = message.useMessage();
   const { pro_error, pro_errMsg } = useSelector((state) => state.product);
   //HAMBURGER MENU

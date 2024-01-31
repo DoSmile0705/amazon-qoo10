@@ -38,8 +38,9 @@ const Product = () => {
   const [showModal, setShowModal] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const { products, loading, successMsg, uploading, loadstate, fileLength } =
-    useSelector((state) => state.product);
+  const { products, loading, successMsg, uploading } = useSelector(
+    (state) => state.product
+  );
   const { userInfo } = useSelector((state) => state.auth);
   const [table_products, SetTable_products] = useState(products || []);
   const [error_Msg, SetError_Msg] = useState(null);
@@ -132,10 +133,9 @@ const Product = () => {
     dispatch(addProductByFile(formData));
     setTimeout(function () {
       dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
-    }, 20000);
+    }, 40000);
   };
   const onSelectChange = (newSelectedRowKeys) => {
-    console.log(newSelectedRowKeys);
     setSelectedRowKeys(newSelectedRowKeys);
   };
   const rowSelection = {
@@ -179,18 +179,6 @@ const Product = () => {
       key: "_id",
     },
     {
-      title: "状 態",
-      width: 80,
-      dataIndex: "status",
-      key: "_id",
-    },
-    {
-      title: "amazon商品数量",
-      width: 90,
-      dataIndex: "quantity",
-      key: "_id",
-    },
-    {
       title: "販売数量",
       width: 60,
       dataIndex: "selledQuantity",
@@ -200,6 +188,12 @@ const Product = () => {
       title: "出品数量",
       width: 60,
       dataIndex: "qoo10_quantity",
+      key: "_id",
+    },
+    {
+      title: "状 態",
+      width: 80,
+      dataIndex: "status",
       key: "_id",
       fixed: "right",
     },
@@ -211,12 +205,14 @@ const Product = () => {
       render: (_, record) => (
         <>
           <Button
+            disabled={loading}
             onClick={() => handleEditClick(record.key)}
-            className="primary "
+            className="primary mr-3"
           >
             変 更
           </Button>
           <Button
+            disabled={loading}
             onClick={() => dispatch(deleteProduct(record))}
             type="primary "
             className="danger"
@@ -250,7 +246,6 @@ const Product = () => {
               x: 1400,
             }}
           />
-          {console.log(loadstate, fileLength)}
         </div>
       </div>
       <div className=" flex flex-col justify-between card h-full py-5 ">
@@ -278,6 +273,7 @@ const Product = () => {
                   placeholder="ASINコード入力"
                 />
                 <Button
+                  disabled={loading}
                   className="primary h-[40px] w-full tracking-widest mb-2"
                   htmlType="submit"
                 >
@@ -294,6 +290,7 @@ const Product = () => {
                     className="w-full flex"
                   >
                     <Button
+                      disabled={loading}
                       className=" w-full h-auto"
                       icon={<UploadOutlined />}
                     >
@@ -309,7 +306,7 @@ const Product = () => {
                   )}
                 </div>
                 <Button
-                  disabled={!file}
+                  disabled={!file || loading}
                   className="primary w-full mt-5"
                   onClick={onFileUpload}
                 >
@@ -328,6 +325,7 @@ const Product = () => {
             </label>
 
             <Button
+              disabled={loading}
               onClick={exhibitionSettingClick}
               className="primary h-[40px] w-full tracking-widest mt-8 mb-2"
             >

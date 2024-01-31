@@ -6,6 +6,7 @@ const ProductSchema = new mongoose.Schema(
     userId: String,
     title: String,
     SecondSubCat: String,
+    qoo10CategoryName: String,
     amaparentCat: String,
     amaCat: String,
     ItemCode: String,
