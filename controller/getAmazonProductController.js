@@ -5,6 +5,8 @@ const app = express();
 const Product = require("../models/Product");
 const NgData = require("../models/NgData");
 const XLSX = require("xlsx");
+const csv = require("csv-parser");
+const fs = require("fs");
 const { updatePrice, UpdateMydbOfQoo10 } = require("./qoo10ProductManage");
 const AddPrice = require("../models/AddPrice");
 const loadstate = require("../models/loadstate");
@@ -244,13 +246,18 @@ const definePrice = async (asins, userID, number) => {
 };
 const getAllProductOfMydb = async (req, res) => {
   const { userId, length } = req.query;
+  console.log(length);
   const addPrice = await AddPrice.find();
   Product.find({ userId: userId })
     .then((products) => {
-      if (!length) {
-        res.json({ products: products, addPrice: addPrice });
+      if (length == 0) {
+        res.json({ products: products, addPrice: addPrice, filelength: 0 });
       } else {
-        res.json({ products: products.splice(length), addPrice: addPrice });
+        res.json({
+          products: products.splice(length),
+          addPrice: addPrice,
+          filelength: length,
+        });
       }
       return products;
     })
@@ -344,28 +351,52 @@ const exhibitProducts = async (req, res) => {
 
   await Product.deleteMany({ status: "新規追加" });
 };
+
 const asinfileUpload = async (req, res) => {
   const uploadedFile = req.file;
-  const workbook = XLSX.readFile(uploadedFile.path);
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-  // Process and save the data to the database
-  const result = await loadstate.find({ _id: req.body.userId });
-  const basicData = await Product.find({ userId: req.body.userId });
-  if (!result.length) {
-    const newloadState = new loadstate({
-      _id: req.body.userId,
-      length: jsonData.length + basicData.length,
+  console.log(req.file);
+
+  let jsonData = [];
+  if (req.file.originalname.includes("csv")) {
+    const results = [];
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on("data", (data) => results.push(data))
+        .on("end", () => resolve())
+        .on("error", (error) => reject(error));
     });
-    await newloadState.save();
+    jsonData = results.map((d) => {
+      return [d.ASIN];
+    });
   } else {
-    await loadstate.findByIdAndUpdate(
-      { _id: req.body.userId },
-      { length: jsonData.length + basicData.length }
-    );
+    const workbook = XLSX.readFile(uploadedFile.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    // Process and save the data to the database
+    const result = await loadstate.find({ _id: req.body.userId });
+    const basicData = await Product.find({ userId: req.body.userId });
+    if (!result.length) {
+      const newloadState = new loadstate({
+        _id: req.body.userId,
+        length: jsonData.length + basicData.length,
+      });
+      await newloadState.save();
+    } else {
+      await loadstate.findByIdAndUpdate(
+        { _id: req.body.userId },
+        { length: jsonData.length + basicData.length }
+      );
+    }
   }
+  console.log(jsonData);
 
   jsonData.map(async (row, index) => {
+    if (index == 0) {
+      res.json({
+        totalLength: jsonData.length,
+      });
+    }
     if (jsonData.length < 20 && index == jsonData.length) {
       await definePrice(jsonData, req.body.userId, index + 1);
     } else if ((index + 1) % 20 == 0 && index != 0) {
@@ -383,13 +414,6 @@ const asinfileUpload = async (req, res) => {
     }
 
     await addProductToMydbBasic(row[0], req.body.userId);
-    if (index == 2) {
-      const data = await Product.find({ userId: req.body.userId });
-      res.json({
-        data,
-        totalLength: jsonData.length,
-      });
-    }
   });
 };
 

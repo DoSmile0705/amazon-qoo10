@@ -11,6 +11,7 @@ import {
   getQoo10Category,
 } from "../../redux/reducers/productSlice";
 import { UserOutlined } from "@ant-design/icons";
+import { getAllNgDatas } from "../../redux/reducers/ngSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -20,6 +21,8 @@ const Header = () => {
   const { loading } = useSelector((state) => state.product);
   const [messageApi, contextHolder] = message.useMessage();
   const { pro_error, pro_errMsg } = useSelector((state) => state.product);
+  let { check, ngdatas } = useSelector((state) => state.ng);
+
   //HAMBURGER MENU
   let navMenu = useRef(null);
   let darkScreen = useRef(null);
@@ -88,8 +91,13 @@ const Header = () => {
   }, [error, pro_error]);
   useEffect(() => {
     dispatch(getQoo10Category());
-    dispatch(getAllProducts(localStorage.getItem("userId"), 0));
+    dispatch(
+      getAllProducts({ userId: localStorage.getItem("userId"), length: 0 })
+    );
   }, []);
+  useEffect(() => {
+    dispatch(getAllNgDatas(localStorage.getItem("userId")));
+  }, [check, loading]);
   return (
     <header className=" md:px-10 h-[8vh] flex justify-between items-center sm:px-3 mx-auto relative z-10 shadow-lg">
       {contextHolder}

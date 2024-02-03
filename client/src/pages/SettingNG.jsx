@@ -1,13 +1,26 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
+
 import {
   getAllNgDatas,
   addNg,
   setstateNg,
   deleteNgData,
+  uploadNgfile,
 } from "../redux/reducers/ngSlice";
-import { Popover, Button, Input, Space, Switch, Badge, Card } from "antd";
+import {
+  Popover,
+  Button,
+  Input,
+  Space,
+  Upload,
+  Divider,
+  Switch,
+  Badge,
+  Card,
+} from "antd";
 const SettingNG = () => {
   const dispatch = useDispatch();
   const [ngData, setNgData] = useState({});
@@ -16,10 +29,7 @@ const SettingNG = () => {
   let { check, ngdatas } = useSelector((state) => state.ng);
   let { userInfo } = useSelector((state) => state.auth);
   const { loading } = useSelector((state) => state.product);
-
-  useEffect(() => {
-    dispatch(getAllNgDatas(userInfo._id));
-  }, [dispatch, check]);
+  const [file, setFile] = useState(null);
 
   const content = (
     <div>
@@ -126,7 +136,16 @@ const SettingNG = () => {
       }
     }
   };
+  const onFileChange = (info) => {
+    setFile(info.file);
+  };
 
+  const onFileUpload = () => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", userInfo._id);
+    dispatch(uploadNgfile(formData));
+  };
   return (
     <section className="absolute h-[92vh] w-full py-3 ">
       <div className="flex gap-3 justify-between h-full px-3 ">
@@ -139,40 +158,60 @@ const SettingNG = () => {
                     <div className="exhi_words">
                       {ngdatas.length
                         ? ngdatas[0].ngword.map((word, index) => {
-                            return (
-                              <Popover
-                                content={content}
-                                onClick={() => {
-                                  setOrwordOption({ ...word, kind: "ngword" });
-                                  setWordOption({ ...word, kind: "ngword" });
-                                }}
-                                title="設定"
-                                trigger="click"
-                              >
-                                <div key={index} className="exhi_word">
-                                  <div className="exhi_word_item">
-                                    <label>{word.value}</label>
+                            if (
+                              index < 20 ||
+                              index > ngdatas[0].ngword.length - 20
+                            )
+                              return (
+                                <Popover
+                                  content={content}
+                                  onClick={() => {
+                                    setOrwordOption({
+                                      ...word,
+                                      kind: "ngword",
+                                    });
+                                    setWordOption({ ...word, kind: "ngword" });
+                                  }}
+                                  title="設定"
+                                  trigger="click"
+                                >
+                                  <div key={index} className="exhi_word">
+                                    <div className="exhi_word_item">
+                                      <label>{word.value}</label>
+                                    </div>
+                                    <svg
+                                      className={
+                                        word.flag
+                                          ? "activate_ng"
+                                          : "disabled_ng"
+                                      }
+                                      aria-hidden="true"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      fill="none"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        stroke="currentColor"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.8"
+                                        d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                      />
+                                    </svg>
                                   </div>
-                                  <svg
-                                    className={
-                                      word.flag ? "activate_ng" : "disabled_ng"
-                                    }
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      stroke="currentColor"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="1.8"
-                                      d="m7 10 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                    />
-                                  </svg>
-                                </div>
-                              </Popover>
-                            );
+                                </Popover>
+                              );
+                            if (index == 20 && ngdatas[0].ngword.length > 40)
+                              return (
+                                <>
+                                  <br />
+                                  <span>
+                                    .......{20}-{ngdatas[0].ngword.length - 20}
+                                    ......
+                                  </span>
+                                  <br />
+                                </>
+                              );
                           })
                         : "内容なし"}
                     </div>
@@ -389,6 +428,40 @@ const SettingNG = () => {
             className=" min-w-[300px] pt-5 pb-[10px]  h-full flex flex-col justify-between"
             onSubmit={handleSubmit}
           >
+            <div>
+              <div className="w-full flex gap-5 justify-center items-center">
+                <Upload
+                  name="file"
+                  beforeUpload={(file, FIleList) => false}
+                  action=""
+                  onChange={onFileChange}
+                  multiple={false}
+                  className="w-full flex"
+                >
+                  <Button
+                    disabled={loading}
+                    className=" w-full h-auto"
+                    icon={<UploadOutlined />}
+                  >
+                    ファイル
+                    <br />
+                    を読み込む
+                  </Button>
+                </Upload>
+                {!file && (
+                  <div className="w-full">
+                    <span>*.csv</span>
+                  </div>
+                )}
+              </div>
+              <Button
+                disabled={!file || loading}
+                className="primary w-full mt-5"
+                onClick={onFileUpload}
+              >
+                送信
+              </Button>
+            </div>
             <div className="">
               <div className="pb-[20px]">
                 <label
@@ -481,6 +554,7 @@ const SettingNG = () => {
                 </div>
               </div>
             </div>
+
             <div>
               <Button
                 disabled={loading}

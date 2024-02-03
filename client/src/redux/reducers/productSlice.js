@@ -4,13 +4,11 @@ import { BASE_URL } from "../../constant";
 
 export const getAllProducts = createAsyncThunk(
   "product/getAllProducts",
-  async (userId, length, thunkAPI) => {
-    let {
-      data: { products },
-    } = await axios.get(`/api/products/`, {
-      params: { userId: userId, length: length },
+  async (payload, thunkAPI) => {
+    let { data } = await axios.get(`/api/products/`, {
+      params: { userId: payload.userId, length: payload.length },
     });
-    return products;
+    return data;
   }
 );
 
@@ -93,28 +91,27 @@ const productSlice = createSlice({
       state.successMsg = "";
     },
     [getAllProducts.fulfilled]: (state, { payload }) => {
+      console.log(payload.products.length == 0 && payload.filelength == 0);
       if (state.products.length == 0) {
-        state.products = payload;
+        state.products = payload.products;
       } else {
-        state.products.push(...payload.splice(state.products.length));
+        state.products.push(...payload.products);
       }
-      if (payload.length == 0 && state.fileLength == 0) {
+      if (payload.products.length == 0 && payload.filelength == 0) {
         state.loading = false;
       }
-      if (
-        payload.length == 0 &&
-        state.products.length > state.fileLength / 50
-      ) {
+      if (payload.products.length == 0 && state.fileLength > 0) {
         state.loadstate = state.loadstate + 1;
       }
-      if (payload.length && state.fileLength > 0) {
+      if (payload.products.length && state.fileLength > 0) {
         state.loadstate = 0;
       }
-      if (payload.length && state.fileLength == 0) {
+      if (payload.products.length && state.fileLength == 0) {
         state.loading = false;
       }
-      if (state.loadstate == 5) {
+      if (state.loadstate == 4) {
         state.fileLength = 0;
+        state.loadstate = 0;
         state.loading = false;
       }
     },
@@ -141,7 +138,6 @@ const productSlice = createSlice({
       state.fileLength = 0;
     },
     [addProductByFile.fulfilled]: (state, { payload }) => {
-      state.products = payload.data;
       state.fileLength = state.products.length + payload.totalLength;
     },
     [addProductByFile.rejected]: (state) => {

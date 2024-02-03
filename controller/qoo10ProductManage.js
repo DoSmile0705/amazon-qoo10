@@ -93,6 +93,31 @@ const getQoo10Category = async (req, res) => {
       res.status(404).json({ nopostfound: "No categories found" })
     );
 };
+const deleteProductAndAddAsin = async (good, userID) => {
+  await Product.deleteOne({ _id: good._id });
+  let ngData = await NgData.find({ _id: userID });
+  if (ngData.length) {
+    await NgData.updateOne(
+      { _id: userID },
+      { $push: { ngasin: { $each: [{ flag: true, value: good.asin }] } } }
+    )
+      .then((products) => {
+        console.log(good.asin, "ngsuccess");
+      })
+      .catch((err) => {
+        console.log("ngerror");
+      });
+  } else {
+    ngData = new NgData({
+      ngword: undefined,
+      excludeword: undefined,
+      ngcategory: undefined,
+      ngasin: [{ flag: true, value: good.asin }],
+      ngbrand: undefined,
+    });
+    await ngData.save();
+  }
+};
 const setNewGoods = async (req, res) => {
   try {
     const { checkedKeys, userId, exceptedKeys } = req.body;
@@ -103,7 +128,7 @@ const setNewGoods = async (req, res) => {
     const certificationKey = await CreateCertificationKey();
     const url =
       "https://api.qoo10.jp/GMKT.INC.Front.QAPIService/ItemsBasic.qapi/SetNewGoods";
-    const dbProducts = await Product.find();
+    const dbProducts = await Product.find({ userId: userId });
     const products = checkedKeys.map((key) => {
       return dbProducts[key];
     });
@@ -111,25 +136,28 @@ const setNewGoods = async (req, res) => {
     // console.log(addprice, transfee, subquantity);
     for (i = 0; i < products.length; i++) {
       const good = products[i];
+      console.log(good);
       let qoo10category = "";
       let qoo10categoryName = "";
+
       const subcategories = categories.filter((cat) => {
+        let content = good.description + good.title;
         return (
+          content.includes(cat.middleCategoryName) ||
           cat.subCategoryName.includes(good.amaparentCat) ||
-          good.description.includes(good.amaparentCat)
+          content.includes(good.amaparentCat) ||
+          content.includes(good.amaCat) ||
+          cat.subCategoryName.includes(good.amaCat)
         );
       });
       qoo10category = subcategories[0]?.subCategory;
       qoo10categoryName = subcategories[0]?.middleCategoryName;
-      if (subcategories.length)
-        subcategories.forEach((cat) => {
-          if (cat.subCategoryName.includes(good.amaCat)) {
-            qoo10category = cat.subCategory;
-            qoo10categoryName = cat.middleCategoryName;
-            return;
-          }
-        });
-      console.log(qoo10category);
+      if (!subcategories.length) {
+        // if (good.amaparentCat.includes("ケース")) {
+        qoo10category = "320002244";
+        qoo10categoryName = "";
+        // }
+      }
       let shippingNo = transfee[0].transfee_1;
       if (good.package) {
         const size = good.package;
@@ -228,7 +256,7 @@ const setNewGoods = async (req, res) => {
       } else {
         sentdata = await Product.find({ _id: good._id });
         sentProducts.push({ ...sentdata, status: "failed" });
-        deleteProductAndAddAsin(good);
+        await deleteProductAndAddAsin(good, userId);
       }
       console.log("yaa1");
     }
@@ -236,7 +264,7 @@ const setNewGoods = async (req, res) => {
 
     const exceptedProducts = exceptedKeys.map((key) => {
       const product = dbProducts[key];
-      deleteProductAndAddAsin(product);
+      deleteProductAndAddAsin(product, userId);
       return product;
     });
     for (i = 0; i < exceptedProducts.length; i++) {
@@ -245,42 +273,18 @@ const setNewGoods = async (req, res) => {
         status: "failed",
       });
     }
-    console.log(exceptedProducts, sentProducts);
+    console.log(exceptedKeys);
+    const ngdata = await NgData.find({ _id: userId });
     res.status(200).json({
       message: "qoo10に正確に出品されました。",
       products: sentProducts,
+      ngdata,
     });
   } catch (err) {
     res.status(500).json({ err: err });
   }
 };
-const deleteProductAndAddAsin = async (good) => {
-  await Product.deleteOne({ _id: good._id });
-  let ngData = await NgData.find();
-  if (ngData.length) {
-    await NgData.updateOne(
-      { _id: ngData[0]._id },
-      {
-        ngasin: [...ngData[0].ngasin, { flag: true, value: good.asin }],
-      }
-    )
-      .then((products) => {
-        console.log("ngsuccess");
-      })
-      .catch((err) => {
-        console.log("ngerror");
-      });
-  } else {
-    ngData = new NgData({
-      ngword: undefined,
-      excludeword: undefined,
-      ngcategory: undefined,
-      ngasin: [{ flag: true, value: good.asin }],
-      ngbrand: undefined,
-    });
-    await ngData.save();
-  }
-};
+
 const updatePrice = async (ItemCode, qoo10_price) => {
   const certificationKey = await CreateCertificationKey();
   const url =

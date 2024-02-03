@@ -85,12 +85,17 @@ const Product = () => {
   }, [loading, uploading, products]);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      dispatch(getAllProducts(localStorage.getItem("userId")));
-    }, 3600000);
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    // const timeoutId = setTimeout(() => {
+    //   dispatch(
+    //     getAllProducts({
+    //       userId: localStorage.getItem("userId"),
+    //       length: products.length,
+    //     })
+    //   );
+    // }, 3600000);
+    // return () => {
+    //   clearTimeout(timeoutId);
+    // };
   });
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -131,7 +136,12 @@ const Product = () => {
     formData.append("userId", userInfo._id);
     dispatch(addProductByFile(formData));
     setTimeout(function () {
-      dispatch(getAllProducts(localStorage.getItem("userId"), products.length));
+      dispatch(
+        getAllProducts({
+          userId: localStorage.getItem("userId"),
+          length: products.length,
+        })
+      );
     }, 40000);
   };
   const onSelectChange = (newSelectedRowKeys) => {
@@ -223,13 +233,16 @@ const Product = () => {
     },
   ];
   useEffect(() => {
-    if (loadstate < 2 && fileLength != 0)
+    if (loadstate < 4 && fileLength != 0)
       setTimeout(function () {
         dispatch(
-          getAllProducts(localStorage.getItem("userId"), products.length)
+          getAllProducts({
+            userId: localStorage.getItem("userId"),
+            length: products.length,
+          })
         );
       }, 120000);
-  }, [products]);
+  }, [products, loadstate]);
   return (
     <section className="flex gap-3 px-3 py-3 w-full  absolute h-[92vh] z-10 ">
       {contextHolder}
@@ -303,7 +316,7 @@ const Product = () => {
                   </Upload>
                   {!file && (
                     <div className="w-full">
-                      <span>*.xlsx</span>
+                      <span>*.xlsx/csv</span>
                     </div>
                   )}
                 </div>
@@ -349,6 +362,7 @@ const Product = () => {
           <ExhibitionSettingModal
             onClick={() => {
               setShowExhibitionModal(false);
+              setSelectedRowKeys([]);
             }}
             checkedItems={newItems}
           />

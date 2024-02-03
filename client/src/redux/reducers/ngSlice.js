@@ -21,6 +21,15 @@ export const addNg = createAsyncThunk(
     return result;
   }
 );
+export const uploadNgfile = createAsyncThunk(
+  "ngdata/uploadNgfile",
+  async (payload, thunkAPI) => {
+    let {
+      data: { result },
+    } = await axios.post(`/api/ngdata/file`, payload);
+    return result;
+  }
+);
 export const setstateNg = createAsyncThunk(
   "ngdata/useNg",
   async (data, thunkAPI) => {
@@ -75,6 +84,21 @@ const ngSlice = createSlice({
       state.check = false;
     },
     [addNg.rejected]: (state, action) => {
+      state.loading = false;
+      state.check = false;
+      state.error = true;
+      state.errMsg = action.error.message;
+    },
+    [uploadNgfile.pending]: (state) => {
+      state.loading = true;
+      state.check = true;
+    },
+    [uploadNgfile.fulfilled]: (state, { payload }) => {
+      state.loading = false;
+      state.check = false;
+      state.ngdatas = payload;
+    },
+    [uploadNgfile.rejected]: (state, action) => {
       state.loading = false;
       state.check = false;
       state.error = true;
