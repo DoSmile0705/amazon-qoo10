@@ -22,12 +22,45 @@ dotenv.config();
 router.get("/", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
+    checkPermission(user);
     const payment = await Payment.find({ _id: user._id }).populate("");
-    console.log(user);
+    console.log(checkPermission(user));
     if (!user) {
       return res.status(400).json({ msg: "user doesn't exist" });
     }
     res.json({ user, payment });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("");
+  }
+});
+const checkPermission = (user) => {
+  const today = new Date();
+  console.log(today.getDate(), today.getMonth() + 1, user.deadline.getDate());
+  const deadDay = user.deadline.getDate();
+  const deadMonth = user.deadline.getMonth();
+  const cuDay = today.getDate();
+  const cuMonth = today.getMonth();
+
+  if (cuMonth > deadMonth) {
+    return false;
+  } else {
+    if (cuMonth == deadMonth && cuDay > deadDay) {
+      return false;
+    }
+    if (user.permission) return true;
+    else return false;
+  }
+};
+
+router.get("/users", verifyToken, async (req, res) => {
+  try {
+    const users = await User.find().select("-password");
+    const today = Date();
+    if (!users) {
+      return res.status(400).json({ msg: "user doesn't exist" });
+    }
+    res.json({ users });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("");
@@ -50,7 +83,7 @@ router.post(
 
     try {
       let user = await User.findOne({ email });
-
+      console.log(user);
       if (user) {
         return res.status(400).send("このユーザーは既に存在します");
       }
@@ -125,8 +158,12 @@ router.post(
 
     try {
       let user = await User.findOne({ email });
+      console.log(user);
       if (!user) {
         return res.status(400).json({ msg: "電子メールが無効です" });
+      }
+      if (!checkPermission(user)) {
+        return res.status(400).json({ msg: "使用期間が切れました。" });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
@@ -191,14 +228,33 @@ router.put("/:id", verifyTokenAndAuthorization, async (req, res) => {
   );
   res.status(200).json(updatedUser);
 });
+router.put("/qoo10/:id", verifyTokenAndAuthorization, async (req, res) => {
+  console.log(req.body);
+  const { _id, ...others } = req.body;
 
-router.delete("/:id", verifyTokenAndAuthorization, async (req, res) => {
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    {
+      $set: {
+        ...others,
+      },
+    },
+    // To ensure it returns the updated User
+    { new: true }
+  );
+  console.log(updatedUser);
+  res.status(200).json(updatedUser);
+});
+
+router.delete("/:id", async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.user.id);
+    const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
       return res.status(400).json({ msg: "user doesn't exist" });
     }
-    res.status(200).json({ msg: "User is successfully deleted" });
+    res
+      .status(200)
+      .json({ msg: "User is successfully deleted", _id: req.params.id });
   } catch (err) {
     if (err.name === "CastError") {
       return res.status(400).json({ msg: "user doesn't exist" });

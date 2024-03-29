@@ -4,19 +4,21 @@ const PaymentSchema = new mongoose.Schema(
   {
     _id: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true
+      ref: "User",
+      required: true,
     },
     user_id: {
-      type: String, default: ''
+      type: String,
+      default: "",
     },
     subscriptionid: {
-      type: String, default: ''
+      type: String,
+      default: "",
     },
     paymentStatus: {
-      type: Boolean, default: false
+      type: Boolean,
+      default: true,
     },
-
   },
   { timestamps: true }
 );

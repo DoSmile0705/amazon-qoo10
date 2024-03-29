@@ -16,7 +16,7 @@ dotenv.config({ path: "../config/config.env" });
 router.get("/find/:id", verifyTokenAndAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");
-    console.log('user',user)
+    console.log("user", user);
     res.status(200).json(user);
   } catch (err) {
     if (err.name === "CastError") {
@@ -29,6 +29,7 @@ router.get("/find/:id", verifyTokenAndAdmin, async (req, res) => {
 
 router.get("/", verifyTokenAndAdmin, async (req, res) => {
   const query = req.query.new;
+  console.log(query);
   try {
     const users = query
       ? await User.find().sort({ _id: -1 }).limit(5)
@@ -39,7 +40,6 @@ router.get("/", verifyTokenAndAdmin, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
-
 
 router.get("/stats", verifyTokenAndAdmin, async (req, res) => {
   const date = new Date();
@@ -91,15 +91,15 @@ router.post(
       let salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
 
-      const result= await user.save();
+      const result = await user.save();
       const payment = new Payment({
-        _id:result._id
-      })
-      const data= await payment.save();
+        _id: result._id,
+      });
+      const data = await payment.save();
       console.log(data);
       const newngcollection = new NgData({
-        _id:result._id
-      })
+        _id: result._id,
+      });
       console.log(newngcollection);
       const payload = {
         user: {
