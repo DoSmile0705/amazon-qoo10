@@ -12,6 +12,7 @@ const AddPrice = require("../models/AddPrice");
 const loadstate = require("../models/loadstate");
 const _ = require("lodash");
 const price = require("../models/price");
+const User = require("../models/User");
 
 require("dotenv").config({
   path: `../`,
@@ -19,6 +20,8 @@ require("dotenv").config({
 app.use(bodyParser.json());
 
 // Function to get Access Token using Refresh Token
+var access_token1;
+var spClient2;
 async function getAccessToken() {
   try {
     const spClient = new SellingPartner({
@@ -34,35 +37,51 @@ async function getAccessToken() {
     });
     await spClient.refreshAccessToken();
     let access_token = spClient.access_token;
-    return access_token;
-  } catch (error) {
-    console.log("sss", error);
-  }
-}
-const getAmazonProduct = async (asin) => {
-  try {
-    // Get Access Token
-    const accessToken = await getAccessToken();
-    // Make request to Amazon SP API
-    const spClient = new SellingPartner({
+    access_token1 = spClient.access_token;
+
+    spClient2 = new SellingPartner({
       region: "fe",
       refresh_token: process.env.REFRESH_TOKEN,
-      access_token: accessToken,
+      access_token: access_token1,
       credentials: {
         SELLING_PARTNER_APP_CLIENT_ID: process.env.CLIENT_ID,
         SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
       },
     });
-    let category = await spClient.callAPI({
-      operation: "listCatalogCategories",
-      endpoint: "catalogItems",
-      query: {
-        MarketplaceId: "A1VC38T7YXB528",
-        ASIN: asin,
-      },
-    });
+    // console.log(spClient2);
 
-    let catalog_item = await spClient.callAPI({
+    return access_token;
+  } catch (error) {
+    console.log("sss", error);
+  }
+}
+getAccessToken();
+const getAmazonProduct = async (asin) => {
+  try {
+    // Get Access Token
+    // const accessToken = await getAccessToken();
+    // Make request to Amazon SP API
+
+    // const spClient = new SellingPartner({
+    //   region: "fe",
+    //   refresh_token: process.env.REFRESH_TOKEN,
+    //   access_token: access_token1,
+    //   credentials: {
+    //     SELLING_PARTNER_APP_CLIENT_ID: process.env.CLIENT_ID,
+    //     SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
+    //   },
+    // });
+
+    // let category = await spClient.callAPI({
+    //   operation: "listCatalogCategories",
+    //   endpoint: "catalogItems",
+    //   query: {
+    //     MarketplaceId: "A1VC38T7YXB528",
+    //     ASIN: asin,
+    //   },
+    // });
+
+    let catalog_item = await spClient2.callAPI({
       operation: "getCatalogItem",
       endpoint: "catalogItems",
       path: {
@@ -79,9 +98,17 @@ const getAmazonProduct = async (asin) => {
     });
     return {
       ...catalog_item,
-      amaCat: category[0].ProductCategoryName,
-      amaparentCat:
-        category[category.length - 1].ProductCategoryName.split("関連製品")[0],
+      // amaCat: category[0].ProductCategoryName,
+      quantity:
+        (catalog_item.attributes.unit_count != undefined &&
+          catalog_item.attributes.unit_count[0].value) ||
+        (catalog_item.attributes.number_of_items != undefined &&
+          catalog_item.attributes.number_of_items[0].value) ||
+        (catalog_item.attributes.number_of_boxes != undefined &&
+          catalog_item.attributes.number_of_boxes[0].value) ||
+        -1,
+      // amaparentCat:
+      //   category[category.length - 1].ProductCategoryName.split("関連商品")[0],
     };
   } catch (error) {
     console.error("ddd", error);
@@ -89,6 +116,7 @@ const getAmazonProduct = async (asin) => {
 };
 const addProductToMydbBasic = async (asin, userId) => {
   const catalog_item = await getAmazonProduct(asin);
+
   let list_price = 0;
   let prices = await price.find({ userId: userId, ASIN: asin });
 
@@ -109,15 +137,17 @@ const addProductToMydbBasic = async (asin, userId) => {
     catalog_item.attributes.bullet_point?.map((des) => {
       bullet_point += des.value;
     });
-    product = new Product({
+    let product = new Product({
       asin: asin,
       userId: userId,
       title: catalog_item.summaries[0].itemName
         ? catalog_item.summaries[0].itemName
         : "",
       SecondSubCat: null,
-      amaparentCat: catalog_item.amaparentCat,
-      amaCat: catalog_item.amaCat,
+      // amaparentCat: catalog_item.amaparentCat,
+      // amaCat: catalog_item.amaCat,
+      amaparentCat: "",
+      amaCat: "",
 
       qoo10_img: catalog_item.images[0].images
         ? catalog_item.images[0].images[0]?.link
@@ -132,9 +162,7 @@ const addProductToMydbBasic = async (asin, userId) => {
       bullet_point: catalog_item.attributes.bullet_point
         ? catalog_item.attributes.bullet_point
         : [],
-      quantity: catalog_item.summaries[0].packageQuantity
-        ? catalog_item.summaries[0].packageQuantity
-        : "",
+      quantity: catalog_item.quantity,
       package: catalog_item.dimensions[0].package
         ? catalog_item.dimensions[0].package
         : "",
@@ -179,19 +207,19 @@ const addProductToMydb = async (req, res) => {
 const definePrice = async (asins, userID, number) => {
   try {
     // Get Access Token
-    const accessToken = await getAccessToken();
+    // const accessToken = await getAccessToken();
     // Make request to Amazon SP API
-    const spClient = new SellingPartner({
-      region: "fe",
-      refresh_token: process.env.REFRESH_TOKEN,
-      access_token: accessToken,
-      credentials: {
-        SELLING_PARTNER_APP_CLIENT_ID: process.env.CLIENT_ID,
-        SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
-      },
-    });
+    // const spClient = new SellingPartner({
+    //   region: "fe",
+    //   refresh_token: process.env.REFRESH_TOKEN,
+    //   access_token: accessToken,
+    //   credentials: {
+    //     SELLING_PARTNER_APP_CLIENT_ID: process.env.CLIENT_ID,
+    //     SELLING_PARTNER_APP_CLIENT_SECRET: process.env.CLIENT_SECRET,
+    //   },
+    // });
     try {
-      let res = await spClient.callAPI({
+      let res = await spClient2.callAPI({
         operation: "getCompetitivePricing",
         endpoint: "productPricing",
         query: {
@@ -262,7 +290,7 @@ const getAllProductOfMydb = async (req, res) => {
       return products;
     })
     .catch((err) =>
-      res.status(404).json({ nopostfound: "製品が見つかりませんでした" })
+      res.status(404).json({ nopostfound: "商品が見つかりませんでした" })
     );
 };
 
@@ -281,38 +309,58 @@ const updateProductOfMydb = async (req, res) => {
     })
     .catch((err) => res.status(404).json({ nopostfound: "No Products found" }));
 };
-const updateProductOfMydbRelatedToTime = async () => {
-  const products = await Product.find();
-  if (products.length) {
-    products.map(async (product, index) => {
-      const prices = await price.find({ ASIN: product.asin });
-      const productprice =
-        prices[0]?.Product?.CompetitivePricing.CompetitivePrices[0]?.Price
-          .LandedPrice.Amount || 600;
 
-      Product.updateOne(
-        { asin: product.asin },
-        { $set: { price: productprice } }
-      )
-        .then((product) => {})
-        .catch((err) => {
-          console.log(err);
-        });
-      if (product.status === "出品済み") {
-        const qoo10_price =
-          productprice * 1 +
-          product.odds_amount * 1 +
-          (productprice * product.bene_rate * 1) / 100;
-        updatePrice(product.ItemCode, qoo10_price.toFixed(2));
-        UpdateMydbOfQoo10(product.ItemCode, product.qoo10_quantity);
-      }
-    });
-  }
+const updateProductOfMydbRelatedToTime = async () => {
+  const users = await User.find();
+  users.map(async (user) => {
+    const products = await Product.find({ userId: user._id });
+    if (products.length) {
+      products.map(async (product, index) => {
+        const catalog_item = await getAmazonProduct(product.asin);
+        if (catalog_item) {
+          const quantity = catalog_item.quantity;
+          console.log(quantity);
+          const prices = await price.find({ ASIN: product.asin });
+          const productprice =
+            prices[0]?.Product?.CompetitivePricing.CompetitivePrices[0]?.Price
+              .LandedPrice.Amount || 1300;
+
+          Product.updateOne(
+            { asin: product.asin },
+            { $set: { price: productprice, quantity: quantity } }
+          )
+            .then((product) => {})
+            .catch((err) => {
+              console.log(err);
+            });
+          if (product.status === "出品済み") {
+            const qoo10_price =
+              productprice * 1 +
+              product.odds_amount * 1 +
+              (productprice * product.bene_rate * 1) / 100;
+            updatePrice(
+              product.ItemCode,
+              qoo10_price.toFixed(2),
+              quantity,
+              user
+            );
+            UpdateMydbOfQoo10(product.ItemCode, product.qoo10_quantity, user);
+          }
+        }
+      });
+    }
+  });
+
+  timeout_function();
+};
+const timeout_function = () => {
   setTimeout(function () {
     updateProductOfMydbRelatedToTime();
-  }, 36000000);
+  }, 10800000);
 };
-updateProductOfMydbRelatedToTime();
+// updateProductOfMydbRelatedToTime();
+
+timeout_function();
 const exhibitProducts = async (req, res) => {
   await req.body.map(async (product, index) => {
     await Product.findOneAndUpdate(
@@ -416,11 +464,47 @@ const asinfileUpload = async (req, res) => {
     await addProductToMydbBasic(row[0], req.body.userId);
   });
 };
+const deleteSeletedProduct = async (req, res) => {
+  try {
+    const { selectedRowKeys, userId } = req.body;
+    console.log(selectedRowKeys);
+    const data = await Product.find({ userId: userId });
+    let deletedproduct = [];
+    selectedRowKeys.forEach(async (key, index) => {
+      await Product.findByIdAndRemove({ _id: data[key]._id }).then((d) => {
+        deletedproduct.push(d._id);
+        console.log(deletedproduct);
 
+        if (deletedproduct.length == selectedRowKeys.length)
+          res.json({ ids: deletedproduct });
+      });
+    });
+  } catch (err) {
+    console.log(err);
+    res.json();
+  }
+};
+const ngRecheckProducts = async (req, res) => {
+  try {
+    const { data } = req.body;
+    console.log(req.body);
+    data.map(async (e) => {
+      await Product.findOneAndUpdate(
+        { _id: e._id },
+        { ngRecheckedState: e.ngRecheckedState }
+      );
+    });
+    res.json({ message: "ok" });
+  } catch (err) {
+    res.json({ message: "error" });
+  }
+};
 module.exports = {
   getAllProductOfMydb,
   updateProductOfMydb,
   exhibitProducts,
   addProductToMydb,
   asinfileUpload,
+  deleteSeletedProduct,
+  ngRecheckProducts,
 };

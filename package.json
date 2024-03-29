@@ -34,6 +34,7 @@
     "mongodb": "^6.3.0",
     "mongoose": "^6.3.1",
     "multer": "^1.4.5-lts.1",
+    "react-highlight-words": "^0.20.0",
     "react-hook-form": "^7.33.1",
     "redux-persist": "^6.0.0",
     "spacy": "^0.0.4",

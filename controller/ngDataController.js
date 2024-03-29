@@ -95,24 +95,44 @@ const useNgData = async (req, res) => {
 };
 const deleteNgData = async (req, res) => {
   const { kind, value, userId } = req.body.data;
-  console.log(userId);
-  await NgData.updateOne(
-    {
-      _id: userId,
-    },
-    { $pull: { [kind]: { value: value } } }
-  )
-    .then((ngdata) =>
-      res
-        .status(200)
-        .json({ ngdata: ngdata, message: "ngword successfully deleted" })
+  console.log(userId, kind);
+  if (value == "all") {
+    await NgData.updateOne(
+      { _id: userId },
+      {
+        [kind]: [],
+      }
     )
-    .catch((err) => res.status(404).json({ nopostfound: "No ngword found" }));
+      .then((ngdata) =>
+        res
+          .status(200)
+          .json({ ngdata: ngdata, message: "ngword successfully deleted" })
+      )
+      .catch((err) => res.status(404).json({ nopostfound: "No ngword found" }));
+  } else {
+    await NgData.updateOne(
+      {
+        _id: userId,
+      },
+      { $pull: { [kind]: { value: value } } }
+    )
+      .then((ngdata) =>
+        res
+          .status(200)
+          .json({ ngdata: ngdata, message: "ngword successfully deleted" })
+      )
+      .catch((err) => res.status(404).json({ nopostfound: "No ngword found" }));
+  }
 };
 const ngfileUpload = async (req, res) => {
   const uploadedFile = req.file;
   let jsonData = [];
-  if (req.file.mimetype.includes("csv")) {
+  console.log(req.file);
+  if (
+    req.file.mimetype
+      ? req.file.mimetype?.includes("csv")
+      : req.file.originalname?.includes("csv")
+  ) {
     const results = [];
     await new Promise((resolve, reject) => {
       fs.createReadStream(req.file.path)
@@ -121,6 +141,7 @@ const ngfileUpload = async (req, res) => {
         .on("end", () => resolve())
         .on("error", (error) => reject(error));
     });
+
     jsonData = results.map((d) => {
       return {
         ngword: d.ngword ? { value: d.ngword, flag: true } : undefined,
@@ -134,6 +155,20 @@ const ngfileUpload = async (req, res) => {
         ngbrand: d.ngbrand ? { value: d.ngbrand, flag: true } : undefined,
       };
     });
+  } else if (req.file.originalname.includes("txt")) {
+    const data = fs.readFileSync(req.file.path, "utf8");
+    const data1 = data.replaceAll("\r\n", " ");
+    const results = data1.split(" ");
+
+    jsonData = results.map((word) => {
+      return {
+        ngword: { value: word, flag: true },
+        excludeword: undefined,
+        ngcategory: undefined,
+        ngasin: undefined,
+        ngbrand: undefined,
+      };
+    });
   }
   jsonData.map((d, index) => {
     addTodb(d, req.body.userId);
@@ -142,7 +177,7 @@ const ngfileUpload = async (req, res) => {
     NgData.find({ _id: req.body.userId }).then((ngdata) =>
       res.status(200).json({ result: ngdata })
     );
-  }, 10000);
+  }, 20000);
 };
 module.exports = {
   addNgData,
