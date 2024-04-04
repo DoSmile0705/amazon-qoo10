@@ -68,10 +68,10 @@ const Qoo10 = () => {
   return (
     <>
       <h3 className="text-xl leading-6 font-bold text-gray-900">
-        qoo10アカウント管理
+        shopeeアカウント管理
       </h3>
       <p className="mt-1 max-w-2xl text-sm text-gray-500">
-        ここでqoo10アカウント情報を更新してください。
+        ここでshopeeアカウント情報を更新してください。
       </p>
       <hr className="border-b border-grayish-blue mt-3 mb-8" />
 

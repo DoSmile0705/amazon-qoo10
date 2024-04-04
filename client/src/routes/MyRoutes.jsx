@@ -26,15 +26,15 @@ const MyRoutes = () => {
           <Route
             index
             element={
-              userInfo ? (
-                // paymentStatus ? (
-                <Home />
-              ) : (
-                // ) : (
-                //   <StripeProvider />
-                // )
-                <Home />
-              )
+              // userInfo ? (
+              //   paymentStatus ? (
+              //     <Home />
+              //   ) : (
+              //     <StripeProvider />
+              //   )
+              //   // <Home />
+              // ) : <Login />
+              <Home />
             }
           />
           <Route

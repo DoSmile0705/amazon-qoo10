@@ -36,7 +36,7 @@ const UserProfile = () => {
       <ion-icon class="p-2 text-base" name="settings"></ion-icon>
     ),
     getItem(
-      <NavLink to="qoo10">qoo10アカウント管理</NavLink>,
+      <NavLink to="qoo10">shopeeアカウント管理</NavLink>,
       "qoo10",
       <ion-icon class="p-2 text-base" name="settings"></ion-icon>
     ),

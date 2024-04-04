@@ -33,6 +33,7 @@ const ProductSchema = new mongoose.Schema(
     qoo10_quantity: { type: Number, default: 0 },
     status: { type: String, default: "新規追加" },
     ngRecheckedState: String,
+    language: { type: String, default: "en" },
   },
   { timestamps: true }
 );

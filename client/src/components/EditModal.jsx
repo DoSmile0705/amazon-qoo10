@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { updateProduct } from "../redux/reducers/productSlice";
-import { Button, InputNumber, List, Modal } from "antd";
+import { Button, InputNumber, List, Modal, Menu, Dropdown } from "antd";
 import { CloseCircleOutlined } from "@ant-design/icons";
+import { GlobalOutlined } from '@ant-design/icons';
+// import DeepL from 'deepl-node'
+
 import TextArea from "antd/es/input/TextArea";
+import axios from "axios";
 
 const EditModal = (props) => {
+  const [lang, setLang] = useState('en');
   const [editedProduct, setEditedProduct] = useState(props.selectedProduct);
   const [mainCategoryName, setMainCategoryName] = useState("");
   const [middleCategories, setMiddleCategories] = useState("");
@@ -76,8 +81,64 @@ const EditModal = (props) => {
     });
     setSubCategories(subC);
   }, [middleCategoryName]);
+
+  const changeLanguage = ({ key }) => {
+    setLang(key);
+    const translatedProduct =  translateProduct(editedProduct, key);
+    setEditedProduct((prevState) => ({
+      ...prevState,
+      language: key
+    }));
+    // setEditedProduct({ ...translatedProduct });
+    console.log(key)
+  }
+
+  const translateProduct = async (editedProduct, lang) => {
+    // let translatedProduct = editedProduct;
+    const translatedProduct = {}; 
+
+    for (const key in editedProduct) {
+      if (typeof editedProduct[key] === 'string') {
+        // const translatedText = await DeepL.translate(editedProduct[key], 'EN', 'FR'); // Translate from English to French, you can change the languages as needed
+        const response = await axios
+          .get("https://api.deepl.com/v2/translate", {
+            params: {
+              auth_key: '45375261-70ce-7760-ebeb-3ee2cdeea426',
+              text: editedProduct[key],
+              target_lang: lang
+            },
+            proxy: {
+              host: "localhost",
+              port: 5173
+            }
+          });
+        
+        const translatedText = response.data.translations[0].text;
+        setEditedProduct((prevState) => ({
+          ...prevState,
+          [key]: translatedText
+        }));
+
+        translatedProduct[key] = translatedText;
+      } else {
+        translatedProduct[key] = editedProduct[key];
+      }
+    }
+
+    // Use translatedProduct object with all strings translated
+    console.log(translatedProduct);
+  }
+
+  const menu = (
+    <Menu onClick={changeLanguage}>
+      <Menu.Item key="ja">日本語</Menu.Item>
+      <Menu.Item key="en">English</Menu.Item>
+      <Menu.Item key="zh">中文</Menu.Item>
+    </Menu>
+  );
+
   return (
-    <div className="w-[750px]  h-[776px] bg-white">
+    <div className="w-[750px] h-[776px]  bg-white overflow-y-scroll pt-10">
       <div className=" justify-between items-center p-5">
         <div className="flex justify-end pr-5">
           <a onClick={props.onClick}>
@@ -88,13 +149,23 @@ const EditModal = (props) => {
           商 品 情 報 編 集
         </h2>
       </div>
+      <div className="flex justify-end">
+        <div className="w-1/4">
+
+          <Dropdown overlay={menu} trigger={['click']}>
+            <a className="ant-dropdown-link" onClick={e => e.preventDefault()} className="bg-red-400">
+              <GlobalOutlined /> Language
+            </a>
+          </Dropdown>
+        </div>
+      </div>
 
       <form
-        className="w-full px-[30px] pt-0 shadow-none "
+        className="w-full px-[20px] pt-0 shadow-none "
         onSubmit={handleSubmit}
       >
         <div className=" justify-between">
-          <div className="card w-full">
+          <div className="card w-full mb-5">
             <div className="flex gap-6 w-full">
               <div className=" w-[200px] h-[160px]">
                 <label
@@ -134,8 +205,8 @@ const EditModal = (props) => {
                           <span className="ml-1">
                             {editedProduct?.package.width
                               ? editedProduct?.package.width.value.toPrecision(
-                                  3
-                                ) + "inches"
+                                3
+                              ) + "inches"
                               : "未決定"}
                           </span>
                         </div>
@@ -144,8 +215,8 @@ const EditModal = (props) => {
                           <span className="ml-1">
                             {editedProduct?.package.height
                               ? editedProduct?.package.height.value.toPrecision(
-                                  3
-                                ) + "inches"
+                                3
+                              ) + "inches"
                               : "未決定"}
                           </span>
                         </div>
@@ -156,8 +227,8 @@ const EditModal = (props) => {
                           <span className="ml-1">
                             {editedProduct?.package.length
                               ? editedProduct?.package.length.value.toPrecision(
-                                  3
-                                ) + "inches"
+                                3
+                              ) + "inches"
                               : "未決定"}
                           </span>
                         </div>
@@ -166,8 +237,8 @@ const EditModal = (props) => {
                           <span className="ml-1">
                             {editedProduct?.package.weight
                               ? editedProduct?.package.weight.value.toPrecision(
-                                  3
-                                ) + "pounds"
+                                3
+                              ) + "pounds"
                               : "未決定"}
                           </span>
                         </div>
@@ -220,7 +291,6 @@ const EditModal = (props) => {
                   タイトル:
                 </label>
                 <TextArea
-                  showCount
                   className=" text-black"
                   placeholder="disable resize"
                   style={{ height: 80, resize: "none" }}
@@ -239,7 +309,6 @@ const EditModal = (props) => {
                   商 品 説 明:
                 </label>
                 <TextArea
-                  showCount
                   className=" text-black"
                   placeholder="disable resize"
                   style={{ height: 80, resize: "none" }}
@@ -251,7 +320,7 @@ const EditModal = (props) => {
               </div>
             </div>
           </div>
-          <div className="card py-2 text-left">
+          <div className="card py-2 text-left mb-5">
             <label
               htmlFor="asin"
               className="ml-3 text-[16px] font-semibold text-gray-700 border-b-2 border-dark-grayish-blue pb-2"

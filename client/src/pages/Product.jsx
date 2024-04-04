@@ -439,7 +439,7 @@ const Product = () => {
       key: "_id",
     },
     {
-      title: "Qoo10カテゴリ",
+      title: "Shopeeカテゴリ",
       width: 130,
       dataIndex: "SecondSubCat",
       key: "_id",
@@ -451,7 +451,7 @@ const Product = () => {
       key: "_id",
 
       render: (title) => (
-        <label>{(title == -1 && "未確認") || "在庫あり"}</label>
+        <label>{(title == -1 && "未確認") || title}</label>
       ),
     },
     {

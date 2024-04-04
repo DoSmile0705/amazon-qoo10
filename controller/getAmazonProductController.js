@@ -117,6 +117,14 @@ const getAmazonProduct = async (asin) => {
 const addProductToMydbBasic = async (asin, userId) => {
   const catalog_item = await getAmazonProduct(asin);
 
+  if (!catalog_item) {
+    return { state: "asin code error", product: null };
+  }
+
+  if (catalog_item.quantity < 1) {
+    return { state: "quantify is not enough", product: null }
+  }
+
   let list_price = 0;
   let prices = await price.find({ userId: userId, ASIN: asin });
 
@@ -188,8 +196,11 @@ const addProductToMydbBasic = async (asin, userId) => {
       .catch((err) => {
         console.log(err);
       });
+    const result = {};
+    result['state'] = "ok";
+    result['product'] = product;
 
-    return product;
+    return result;
   }
 };
 // };
@@ -198,9 +209,22 @@ const addProductToMydb = async (req, res) => {
     const { asin, userId } = req.body;
     await definePrice(asin, userId, 0);
 
-    const product = await addProductToMydbBasic(asin, userId);
-    res.json({ product: product, message: "商品登録成功" });
+    const result = await addProductToMydbBasic(asin, userId);
+    console.log(result);
+    const state = result['state']
+    let message = "";
+    if (state === "ok") {
+      message = "商品登録成功";
+    } else if(state !== "asin code error"){
+      message = "在庫不足！";
+    } else {
+      message = "ASINコードが無効です。";
+    }
+    const product = result['product']
+
+    res.json({ product: product, message: message });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error });
   }
 };
@@ -356,7 +380,7 @@ const updateProductOfMydbRelatedToTime = async () => {
 const timeout_function = () => {
   setTimeout(function () {
     updateProductOfMydbRelatedToTime();
-  }, 10800000);
+  }, 28800000);
 };
 // updateProductOfMydbRelatedToTime();
 

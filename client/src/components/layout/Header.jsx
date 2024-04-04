@@ -114,7 +114,7 @@ const Header = () => {
     }
   }, [check, loading]);
   return (
-    <header className=" md:px-10 h-[8vh] flex justify-between items-center sm:px-3 mx-auto relative z-10 shadow-lg">
+    <header className=" md:px-10 h-[8vh] flex justify-between items-center sm:px-3 mx-auto relative z-10 shadow-lg bg-blue-500">
       {contextHolder}
 
       <div className="left flex items-center lg:h-inherit ">
